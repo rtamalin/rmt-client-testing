@@ -1,0 +1,50 @@
+GO_COVERAGE_PROFILE ?= $(abspath $(REPO_BASE_DIR)/.coverage.out)
+
+export GONOPROXY=github.com/SUSE,github.com/rtamalin
+
+
+.PHONY: fmt vet build build-only clean test-clean test-verbose test-coverage mod-tidy mod-download mod-update test-mod-update telemetry-client-update
+
+CMD_SUBDIRS = \
+	cmd/rmt-hwinfo-tester
+
+fmt:
+	go fmt ./...
+
+vet:
+	go vet ./...
+
+build-only:
+	go build ./... && \
+	for cmd_dir in $(CMD_SUBDIRS); \
+	do \
+		(cd $${cmd_dir} && go build ./...); \
+	done
+
+build: vet build-only
+
+clean:: test-clean
+	go clean ./...
+
+test-clean:
+	go clean -testcache
+
+test test-verbose: test-clean build
+	go test $(if $(findstring verbose,$@),-v) -cover -coverprofile=$(GO_COVERAGE_PROFILE) ./...
+
+test-coverage: test
+	go tool cover --func=$(GO_COVERAGE_PROFILE)
+
+mod-tidy:
+	go mod tidy -x
+
+mod-download:
+	go mod download -x
+
+mod-update:
+	go get -u -x && \
+	go mod tidy
+
+test-mod-update:
+	go get -u -t -x && \
+	go mod tidy

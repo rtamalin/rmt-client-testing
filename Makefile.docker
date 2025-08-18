@@ -1,0 +1,46 @@
+# docker containers - just server for now, but admin can be
+# handled as well if telemetry-admin is added to the end of
+# this list
+TESTER_CONTAINERS = \
+  rmt-client-tester
+
+# docker container actions
+.PHONY: docker-build docker-start docker-run docker-ps docker-status docker-logs docker-stop
+
+# Start the telemetry containers using docker
+docker-build: vet
+	for cntr in $(TESTER_CONTAINERS); do \
+		$(CNTR_MGR) build \
+		  --pull \
+		  --tag $${cntr} \
+		  --target $${cntr} \
+		  . \
+		; \
+	done
+
+docker-start docker-run: docker-build
+	for cntr in $(TESTER_CONTAINERS); do \
+		$(CNTR_MGR) run \
+			--rm \
+			--detach \
+			--name $${cntr} $${cntr}; \
+	done
+
+docker-ps docker-status:
+	$(CNTR_MGR) ps --filter name=\^$$(echo $(TESTER_CONTAINERS) | tr -s ' ' | tr ' ' '|')\$$;
+
+docker-logs:
+	for cntr in $(TESTER_CONTAINERS); do \
+		$(CNTR_MGR) logs -n 100 $${cntr}; \
+	done
+
+docker-stop: docker-status
+	-for cntr in $(TESTER_CONTAINERS); do \
+		$(CNTR_MGR) stop $${cntr}; \
+	done
+
+docker-clean: docker-stop
+	$(CNTR_MGR) buildx prune -f --filter="until=24h" && \
+	$(CNTR_MGR) image prune -f
+
+clean:: docker-clean
