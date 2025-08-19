@@ -18,7 +18,8 @@ ARG SLE_BCI_VERSION=15.7
 
 # suseconnect Settings
 ARG CONNECT_REPO=SUSE/connect-ng
-ARG CONNECT_REF=next
+#ARG CONNECT_REF=next
+ARG CONNECT_REF=demo-app-with-info
 
 #
 # Build the code in BCI golang based image
@@ -102,15 +103,17 @@ RUN set -euo pipefail; \
           ; \
         zypper -n clean
 
+WORKDIR /app
+
 # create the /app/bin directory and copy in built binaries
 RUN mkdir -p /app/bin
 
 # copy built binaries from builder image
-COPY --from=builder --chmod=0755 ${TESTER_BUILD_DIR}/connect-ng/out/. /app/bin/
-COPY --from=builder --chmod=0755 ${TESTER_BUILD_DIR}/rmt-client-testing/cmd/rmt-hwinfo-tester /app/bin/
+COPY --from=builder --chmod=0755 ${TESTER_BUILD_DIR}/connect-ng/out/. ./bin/
+COPY --from=builder --chmod=0755 ${TESTER_BUILD_DIR}/rmt-client-testing/out/rmt-hwinfo-tester ./bin/
 
-COPY --chmod=0755 entrypoint.bash /app/
+COPY --chmod=0755 entrypoint.bash ./
 
 # setup the environment variables
-#ENTRYPOINT ["/app/entrypoint.bash"]
+ENTRYPOINT ["/app/entrypoint.bash"]
 #CMD ["help"]

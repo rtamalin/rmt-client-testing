@@ -1,7 +1,7 @@
 GO_COVERAGE_PROFILE ?= $(abspath $(REPO_BASE_DIR)/.coverage.out)
+OUT_DIR ?= $(abspath $(REPO_BASE_DIR)/out)
 
 export GONOPROXY=github.com/SUSE,github.com/rtamalin
-
 
 .PHONY: fmt vet build build-only clean test-clean test-verbose test-coverage mod-tidy mod-download mod-update test-mod-update telemetry-client-update
 
@@ -14,14 +14,16 @@ fmt:
 vet:
 	go vet ./...
 
-build-only:
-	go build ./... && \
-	for cmd_dir in $(CMD_SUBDIRS); \
-	do \
-		(cd $${cmd_dir} && go build ./...); \
-	done
+$(OUT_DIR):
+	@mkdir -p $(OUT_DIR)
+
+build-only: $(OUT_DIR)
+	go build -o $(OUT_DIR) ./...
 
 build: vet build-only
+
+real-clean::
+	rm -rf $(OUT_DIR)
 
 clean:: test-clean
 	go clean ./...

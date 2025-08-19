@@ -11,7 +11,7 @@ import (
 	"github.com/rtamalin/rmt-client-testing/internal/profile"
 )
 
-type ClientId uint64
+type ClientId uint32
 type ClientType uint
 
 const (
@@ -135,12 +135,19 @@ func (c *Client) Init(cliType ClientType, id ClientId, numDisk, numGPU, numNet i
 
 func (c *Client) Uname() string {
 	return fmt.Sprintf(
-		"Simulated %s client %s with %d Disks, %d GPUs, %d Nets",
-		c.Type,
-		c.UUID,
+		"Simulated client %s with %d Disks, %d GPUs, %d Nets",
+		c.Hostname(),
 		c.NumDisk,
 		c.NumGPU,
 		c.NumNet,
+	)
+}
+
+func (c *Client) Hostname() string {
+	return fmt.Sprintf(
+		"%s-%08x",
+		c.Type,
+		c.Id,
 	)
 }
 
@@ -151,7 +158,7 @@ func (c *Client) SystemInfo() string {
 	sysInfo["arch"] = hwInfo.Arch
 	sysInfo["cloud_provider"] = "amazon"
 	sysInfo["cpus"] = hwInfo.Cpus
-	sysInfo["hostname"] = c.Id
+	sysInfo["hostname"] = c.Hostname()
 	sysInfo["hypervisor"] = "amazon"
 	sysInfo["mem_total"] = hwInfo.Memory
 	sysInfo["mod_list"] = c.ModList
