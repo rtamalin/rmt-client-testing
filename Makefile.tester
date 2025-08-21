@@ -10,6 +10,9 @@ CLIENT_DATA_STORE ?= $(REPO_BASE_DIR)/ClientDataStore-$(NUM_CLIENTS)
 # env settings file
 ENV_FILE ?= $(REPO_BASE_DIR)/.env
 
+# helper script dir
+HELPER_DIR ?= $(REPO_BASE_DIR)/bin
+
 # client registration product
 PRODUCT ?= SLES
 VERSION ?= 15.7
@@ -63,3 +66,5 @@ client-tester:
 	  -it \
 	  $(TESTER_RUN_OPTIONS) \
 	  $(TESTER_IMAGE)
+	$(HELPER_DIR)/rmt-size-of-system-information
+	$(HELPER_DIR)/rmt-systems-table-size

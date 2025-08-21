@@ -19,26 +19,9 @@ dockerArgs=(
     ${rmtCntr}
 )
 
-dbCmd=(
-    env
-    MYSQL_PWD="${MYSQL_PASSWORD}"
-    mariadb
-    -u "${MYSQL_USER}"
-    -h db
-    -D "${MYSQL_DATABASE}"
-)
-
-if (( $# > 0 )); then
-    # handle simple query vs flags being passed in
-    if [[ "${1:0:1}" != "-" ]]; then
-        dbCmd+=( -e "${*}" )
-    else
-        dbCmd+=( "${@}" )
-    fi
-fi
-
 docker \
     "${dockerArgs[@]}" \
-    "${dbCmd[@]}"
+    rmt-cli \
+    "${@}"
 
 # vim:shiftwidth=4:tabstop=4:expandtab

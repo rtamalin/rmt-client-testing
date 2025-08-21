@@ -33,10 +33,15 @@ register those clients.
 
 # Helper Scripts
 The `bin/` directory contains some helper scripts for querying the
-RMT DB.
+RMT DB and working with the local developer deployment of RMT.
 
 These scripts also require than a copy of an appropriately configured
 SUSE/rmt .env file be available as the .env file in this repo.
+
+## rmt-cli
+Simple wrapper script to call rmt-cli command with provided arguments
+within the locally running RMT Server containers, which defaults to
+`rmt-rmt-1`.
 
 ## rmt-db-query
 Simple wrapper script to exec the mariadb command in the RMT Server
