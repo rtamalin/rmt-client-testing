@@ -1,0 +1,39 @@
+#!/bin/bash
+
+cmdName=$(basename ${BASH_SOURCE[0]})
+binDir=$(readlink -e $(dirname ${BASH_SOURCE[0]}))
+repoDir=$(dirname ${binDir})
+rmtEnv=${repoDir}/.env
+rmtCntr=${RMT_CNTR:-rmt-rmt-1}
+
+if [[ ! -r ${rmtEnv} ]]; then
+    echo "Ensure env is setup"
+    exit 1
+fi
+
+. ${rmtEnv}
+
+dockerArgs=(
+    exec
+    -ti
+    ${rmtCntr}
+)
+
+dbCmd=(
+    env
+    MYSQL_PWD="${MYSQL_PASSWORD}"
+    mariadb
+    -u "${MYSQL_USER}"
+    -h db
+    -D "${MYSQL_DATABASE}"
+)
+
+if (( $# > 0 )); then
+    dbCmd+=( -e "${*}" )
+fi
+
+docker \
+    "${dockerArgs[@]}" \
+    "${dbCmd[@]}"
+
+# vim:shiftwidth=4:tabstop=4:expandtab

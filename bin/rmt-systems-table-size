@@ -1,0 +1,20 @@
+#!/bin/bash
+
+cmdName=$(basename ${BASH_SOURCE[0]})
+binDir=$(readlink -e $(dirname ${BASH_SOURCE[0]}))
+dbQuery=${binDir}/rmt-db-query
+
+if [[ ! -x ${dbQuery} ]]; then
+    echo "Ensure that the $(basename "${dbQuery}") command is available."
+    exit 1
+fi
+
+${dbQuery} "
+SELECT 
+    TABLE_NAME AS \`Table\`,
+    ROUND(((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024), 3) AS \`Size in MiB\`
+FROM
+    information_schema.TABLES
+WHERE
+    TABLE_SCHEMA = 'rmt' AND TABLE_NAME = 'systems';"
+# vim:shiftwidth=4:tabstop=4:expandtab
