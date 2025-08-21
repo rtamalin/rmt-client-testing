@@ -1,0 +1,65 @@
+# tester container image
+TESTER_IMAGE ?= rmt-client-tester
+
+# number of clients to generate hwinfo for
+NUM_CLIENTS ?= 1000
+
+# client hwinfo data store
+CLIENT_DATA_STORE ?= $(REPO_BASE_DIR)/ClientDataStore-$(NUM_CLIENTS)
+
+# env settings file
+ENV_FILE ?= $(REPO_BASE_DIR)/.env
+
+# client registration product
+PRODUCT ?= SLES
+VERSION ?= 15.7
+ARCH ?= x86_64
+
+# RMT specification
+RMT_HOST ?= localhost
+
+# tester image run options
+TESTER_RUN_OPTIONS = \
+	  --rm \
+	  --network=host \
+		--cap-add=sys_rawio \
+		--device /dev/mem:/dev/mem \
+		-v $(REPO_BASE_DIR):/app/tester \
+		-v $(CLIENT_DATA_STORE):/app/ClientDataStore
+
+# testing actions
+.PHONY: client-register client-tester env-exists generate-hwinfo
+
+env-exists:
+	if [ ! -e $(ENV_FILE) ]; then \
+	  echo "Please create a .env file in the repo; copy it from your SUSE/rmt repo"; \
+		exit 1; \
+	fi
+
+generate-hwinfo: build
+	out/rmt-hwinfo-generator \
+		--datastore $(CLIENT_DATA_STORE) \
+		--clients $(NUM_CLIENTS)
+
+$(CLIENT_DATA_STORE): generate-hwinfo
+
+client-register: env-exists $(CLIENT_DATA_STORE) docker-build
+	. $(ENV_FILE); \
+	$(CNTR_MGR) run \
+	  $(TESTER_RUN_OPTIONS) \
+		--entrypoint /app/bin/rmt-hwinfo-clientctl \
+	  $(TESTER_IMAGE) \
+				--action register \
+				--clients $(NUM_CLIENTS) \
+				--product $(PRODUCT) \
+				--version $(VERSION) \
+				--arch $(ARCH) \
+				--datastore /app/ClientDataStore \
+				--scc-host http://$(RMT_HOST)$${EXTERNAL_PORT:+:$${EXTERNAL_PORT}}/ \
+				--regcode $${REG_CODE}
+	  
+client-tester:
+	$(CNTR_MGR) run \
+	  -it \
+	  $(TESTER_RUN_OPTIONS) \
+	  $(TESTER_IMAGE)
