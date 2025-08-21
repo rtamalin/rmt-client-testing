@@ -119,9 +119,17 @@ func (s *ClientStore) Root() string {
 	return s.rootDir
 }
 
+func (s *ClientStore) ClientDirPath(id FileId) string {
+	return filepath.Join(s.rootDir, id.DirPath())
+}
+
+func (s *ClientStore) ClientPath(id FileId) string {
+	return filepath.Join(s.rootDir, id.Path())
+}
+
 func (s *ClientStore) Open(id FileId, create bool) (fp *os.File, err error) {
-	dirPath := filepath.Join(s.rootDir, id.DirPath())
-	filePath := filepath.Join(s.rootDir, id.Path())
+	dirPath := s.ClientDirPath(id)
+	filePath := s.ClientPath(id)
 
 	// ensure directory hierarchy exists for file
 	if err = os.MkdirAll(dirPath, 0o755); err != nil {

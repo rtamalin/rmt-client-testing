@@ -110,7 +110,7 @@ RUN mkdir -p /app/bin
 
 # copy built binaries from builder image
 COPY --from=builder --chmod=0755 ${TESTER_BUILD_DIR}/connect-ng/out/. ./bin/
-COPY --from=builder --chmod=0755 ${TESTER_BUILD_DIR}/rmt-client-testing/out/rmt-hwinfo-tester ./bin/
+COPY --from=builder --chmod=0755 ${TESTER_BUILD_DIR}/rmt-client-testing/out/. ./bin/
 
 COPY --chmod=0755 entrypoint.bash ./
 
