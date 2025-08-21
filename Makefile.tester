@@ -31,7 +31,7 @@ TESTER_RUN_OPTIONS = \
 		-v $(CLIENT_DATA_STORE):/app/ClientDataStore
 
 # testing actions
-.PHONY: client-register client-tester env-exists generate-hwinfo
+.PHONY: client-deregister client-register client-tester env-exists generate-hwinfo size-of-system-information systems-table-size
 
 env-exists:
 	if [ ! -e $(ENV_FILE) ]; then \
@@ -60,11 +60,24 @@ client-register: env-exists $(CLIENT_DATA_STORE) docker-build
 				--datastore /app/ClientDataStore \
 				--scc-host http://$(RMT_HOST)$${EXTERNAL_PORT:+:$${EXTERNAL_PORT}}/ \
 				--regcode $${REG_CODE}
+	$(HELPER_DIR)/rmt-size-of-system-information
+	$(HELPER_DIR)/rmt-systems-table-size
 	  
 client-tester:
 	$(CNTR_MGR) run \
 	  -it \
 	  $(TESTER_RUN_OPTIONS) \
 	  $(TESTER_IMAGE)
+
+size-of-system-information systems-table-size:
+	$(HELPER_DIR)/rmt-$(@)
+
+# TODO: implement deregister in rmt-hwinfo-clientctl
+client-deregister:
+	for c in $$($(HELPER_DIR)/rmt-db-query --skip-column-names -s -e "SELECT login from systems;" | tr -d '\r'); \
+	do \
+	  echo "[Removing $${c}]"; \
+		$(HELPER_DIR)/rmt-cli systems remove $${c} || exit 1 ; \
+	done
 	$(HELPER_DIR)/rmt-size-of-system-information
 	$(HELPER_DIR)/rmt-systems-table-size
