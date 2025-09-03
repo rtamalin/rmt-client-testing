@@ -1,0 +1,35 @@
+#!/bin/bash
+
+cmdName=$(basename ${BASH_SOURCE[0]})
+binDir=$(readlink -e $(dirname ${BASH_SOURCE[0]}))
+dbQuery=${binDir}/rmt-db-query
+
+usage()
+{
+    echo "Usage: ${cmdName} <TABLE> [<DB>]"
+    exit ${1:-0}
+}
+
+if [[ ! -x ${dbQuery} ]]; then
+    echo "ERROR: Ensure that the $(basename "${dbQuery}") command is available."
+    usage 1
+fi
+
+if (( $# < 1 )); then
+    echo "ERROR: No table was specified"
+    usage 1
+fi
+
+# parse arguments
+dbTable="${1}"
+dbName="${2:-rmt}"
+
+${dbQuery} "
+SELECT 
+    TABLE_NAME AS \`Table\`,
+    ROUND(((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024), 3) AS \`Size in MiB\`
+FROM
+    information_schema.TABLES
+WHERE
+    TABLE_SCHEMA = '${dbName}' AND TABLE_NAME = '${dbTable}';"
+# vim:shiftwidth=4:tabstop=4:expandtab

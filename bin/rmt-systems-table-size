@@ -2,19 +2,23 @@
 
 cmdName=$(basename ${BASH_SOURCE[0]})
 binDir=$(readlink -e $(dirname ${BASH_SOURCE[0]}))
-dbQuery=${binDir}/rmt-db-query
+dbTableSize=${binDir}/rmt-db-get-table-size
 
-if [[ ! -x ${dbQuery} ]]; then
-    echo "Ensure that the $(basename "${dbQuery}") command is available."
+if [[ ! -x ${dbTableSize} ]]; then
+    echo "ERROR: Ensure that the $(basename "${dbTableSize}") command is available."
     exit 1
 fi
 
-${dbQuery} "
-SELECT 
-    TABLE_NAME AS \`Table\`,
-    ROUND(((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024), 3) AS \`Size in MiB\`
-FROM
-    information_schema.TABLES
-WHERE
-    TABLE_SCHEMA = 'rmt' AND TABLE_NAME = 'systems';"
+case "${cmdName}" in
+    (rmt-*-table-size)
+        dbTable="${cmdName%-table-size}"
+        dbTable="${dbTable#rmt-}"
+        ;;
+    (*)
+        echo "ERROR: ${cmdName} command name doesn't conform to required pattern"
+        exit 1
+        ;;
+esac
+
+${dbTableSize} ${dbTable}
 # vim:shiftwidth=4:tabstop=4:expandtab
