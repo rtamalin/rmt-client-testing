@@ -1,5 +1,7 @@
 package client
 
+import "github.com/rtamalin/rmt-client-testing/internal/choice"
+
 var tinyPciDataHeader = []string{
 	"00:00.0 Host bridge: Intel Corporation 440FX - 82441FX PMC [Natoma] (rev 02)",
 	"00:01.0 ISA bridge: Intel Corporation 82371SB PIIX3 ISA [Natoma/Triton II]",
@@ -12,7 +14,7 @@ const (
 	tinyPciSlot = 4
 )
 
-var tinyModList = []string{
+var tinyModData = []string{
 	"aesni_intel",
 	"af_packet",
 	"ahci",
@@ -70,17 +72,41 @@ var tinyModList = []string{
 	"x_tables",
 }
 
+// weighted choice of number of disks for a small client
+var tinyDiskChoices = []choice.Choice{
+	{
+		Weight: 50,
+		Value:  1,
+	},
+	{
+		Weight: 25,
+		Value:  2,
+	},
+	{
+		Weight: 10,
+		Value:  3,
+	},
+	{
+		Weight: 10,
+		Value:  4,
+	},
+	{
+		Weight: 5,
+		Value:  5,
+	},
+}
+
 func TinyClient(id ClientId) *Client {
 	c := new(Client)
 
-	numDisk := 0
+	numDisk := choice.Choose(tinyDiskChoices).(int)
 	numGPU := 0
 	numNet := 0
 
 	c.Init(CLIENT_TINY, id, numDisk, numGPU, numNet)
 
 	c.setupPciData(tinyPciDataHeader, tinyPciBus, tinyPciSlot)
-	c.setupModList(tinyModList)
+	c.setupModData(tinyModData)
 
 	return c
 }

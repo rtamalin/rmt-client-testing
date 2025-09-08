@@ -8,7 +8,7 @@ require (
 )
 
 require (
-	github.com/SUSE/connect-ng v1.15.1-0.20250819105835-3b9687556253
+	github.com/SUSE/connect-ng v1.15.1-0.20250902101539-4d153b18e3a1
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect

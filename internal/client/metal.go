@@ -172,7 +172,7 @@ const (
 	metalPciSlot = 0
 )
 
-var metalModList = []string{
+var metalModData = []string{
 	"aesni_intel",
 	"af_packet",
 	"ahci",
@@ -262,19 +262,47 @@ var metalModList = []string{
 // weighted choice of number of disks for a metal client
 var metalDiskChoices = []choice.Choice{
 	{
-		Weight: 60,
+		Weight: 20,
+		Value:  1,
+	},
+	{
+		Weight: 25,
 		Value:  2,
 	},
 	{
-		Weight: 40,
+		Weight: 20,
+		Value:  3,
+	},
+	{
+		Weight: 20,
 		Value:  4,
+	},
+	{
+		Weight: 10,
+		Value:  5,
+	},
+	{
+		Weight: 5,
+		Value:  6,
 	},
 }
 
 // weighted choice of number of GPUs for a metal client
 var metalGPUChoices = []choice.Choice{
 	{
-		Weight: 60,
+		Weight: 5,
+		Value:  32,
+	},
+	{
+		Weight: 5,
+		Value:  24,
+	},
+	{
+		Weight: 20,
+		Value:  16,
+	},
+	{
+		Weight: 20,
 		Value:  8,
 	},
 	{
@@ -282,8 +310,16 @@ var metalGPUChoices = []choice.Choice{
 		Value:  4,
 	},
 	{
-		Weight: 20,
+		Weight: 10,
+		Value:  3,
+	},
+	{
+		Weight: 10,
 		Value:  2,
+	},
+	{
+		Weight: 10,
+		Value:  1,
 	},
 }
 
@@ -297,7 +333,7 @@ func MetalClient(id ClientId) *Client {
 	c.Init(CLIENT_METAL, id, numDisk, numGPU, numNet)
 
 	c.setupPciData(metalPciDataHeader, metalPciBus, metalPciSlot)
-	c.setupModList(metalModList)
+	c.setupModData(metalModData)
 
 	return c
 }

@@ -250,12 +250,13 @@ func registerClientOld(appName, prod, version, arch, infoPath, regcode string) e
 	return nil
 }
 
-func loadSysInfo(siPath string, sysInfo *registration.SystemInformation) (err error) {
-	siBytes, err := os.ReadFile(siPath)
+func readSysInfo(fileId clientstore.FileId, clientStore *clientstore.ClientStore, sysInfo *registration.SystemInformation) (err error) {
+	fileType := clientstore.SYS_INFO_TYPE
+	siBytes, err := clientStore.ReadFile(fileId, fileType)
 	if err != nil {
 		err = fmt.Errorf(
 			"failed to read system information from %q: %w",
-			siPath,
+			fileId.Path(fileType),
 			err,
 		)
 		return
@@ -264,6 +265,29 @@ func loadSysInfo(siPath string, sysInfo *registration.SystemInformation) (err er
 	parseErr := json.Unmarshal(siBytes, sysInfo)
 	if parseErr != nil {
 		fmt.Fprintf(os.Stderr, "Error unmarshalling system information JSON: %v\n", parseErr)
+		os.Exit(1)
+	}
+
+	return
+}
+
+type RegInfo map[string]any
+
+func readRegInfo(fileId clientstore.FileId, clientStore *clientstore.ClientStore, regInfo *RegInfo) (err error) {
+	fileType := clientstore.REG_INFO_TYPE
+	riBytes, err := clientStore.ReadFile(fileId, fileType)
+	if err != nil {
+		err = fmt.Errorf(
+			"failed to read registration information from %q: %w",
+			fileId.Path(fileType),
+			err,
+		)
+		return
+	}
+
+	parseErr := json.Unmarshal(riBytes, regInfo)
+	if parseErr != nil {
+		fmt.Fprintf(os.Stderr, "Error unmarshalling registration information JSON: %v\n", parseErr)
 		os.Exit(1)
 	}
 
@@ -289,17 +313,43 @@ func registerClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 		connectOpts.Certificate = cliOpts.cert
 	}
 
-	sysInfoPath := cliOpts.clientStore.ClientPath(id)
 	sysInfo := registration.SystemInformation{
 		"uname":    "public api demo",
 		"hostname": "public-api-demo",
 	}
-	loadSysInfo(sysInfoPath, &sysInfo)
+	if err = readSysInfo(id, cliOpts.clientStore, &sysInfo); err != nil {
+		err = fmt.Errorf(
+			"registerClient failed: %w",
+			err,
+		)
+		return
+	}
+
+	extraData := registration.ExtraData{
+		"instance_data": "<document>{}</document>",
+	}
+
+	// add data profiles to extraData.dataProfiles, removing them from sysInfo
+	dataProfiles := map[string]any{}
+	dpNames := []string{
+		"pci_data",
+		"mod_data",
+	}
+	for _, dpName := range dpNames {
+		// skip if dp_name entry not in sysInfo
+		if _, ok := sysInfo[dpName]; !ok {
+			continue
+		}
+
+		dataProfiles[dpName] = sysInfo[dpName]
+		delete(sysInfo, dpName)
+	}
+	extraData["data_profiles"] = dataProfiles
 
 	hostname := sysInfo["hostname"].(string)
 
 	bold("Setup connection and perform registration")
-	conn := connection.New(connectOpts, &SccCredentials{})
+	conn := connection.New(connectOpts, sccCreds)
 
 	// Proxies do not implement /connect/subscriptions/info so we skip it
 	if !isProxy {
@@ -328,7 +378,7 @@ func registerClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	}
 
 	bold("Registering a client with %s using a registration code", connectOpts.URL)
-	regId, err := registration.Register(conn, cliOpts.RegCode, hostname, sysInfo, registration.NoExtraData)
+	regId, err := registration.Register(conn, cliOpts.RegCode, hostname, sysInfo, extraData)
 	if err != nil {
 		err = fmt.Errorf(
 			"failed to register with %q using reg code: %w",
@@ -354,10 +404,6 @@ func registerClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	bold("++ %s activated", root.FriendlyName)
 
 	bold("System status // Ping")
-
-	extraData := registration.ExtraData{
-		"instance_data": "<document>{}</document>",
-	}
 
 	status, err := registration.Status(conn, hostname, sysInfo, extraData)
 	if err != nil {

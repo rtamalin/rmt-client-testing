@@ -11,6 +11,13 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+type FileType string
+
+const (
+	SYS_INFO_TYPE FileType = "sysinfo"
+	REG_INFO_TYPE FileType = "reginfo"
+)
+
 type FileId uint32
 
 func (i FileId) topDirBits() uint32 {
@@ -21,7 +28,7 @@ func (i FileId) midDirBits() uint32 {
 	return (uint32(i) >> 10) & 0x3ff
 }
 
-func (i FileId) leafBits() uint32 {
+func (i FileId) leafDirBits() uint32 {
 	return uint32(i) & 0x3ff
 }
 
@@ -29,17 +36,18 @@ func (i FileId) DirPath() string {
 	return filepath.Join(
 		fmt.Sprintf("%03x", i.topDirBits()),
 		fmt.Sprintf("%03x", i.midDirBits()),
+		fmt.Sprintf("%03x", i.leafDirBits()),
 	)
 }
 
-func (i FileId) FileName() string {
-	return fmt.Sprintf("%03x.json", i.leafBits())
+func (i FileId) FileName(fileType FileType) string {
+	return fmt.Sprintf("%s.json", fileType)
 }
 
-func (i FileId) Path() string {
+func (i FileId) Path(fileType FileType) string {
 	return filepath.Join(
 		i.DirPath(),
-		i.FileName(),
+		i.FileName(fileType),
 	)
 }
 
@@ -123,13 +131,12 @@ func (s *ClientStore) ClientDirPath(id FileId) string {
 	return filepath.Join(s.rootDir, id.DirPath())
 }
 
-func (s *ClientStore) ClientPath(id FileId) string {
-	return filepath.Join(s.rootDir, id.Path())
+func (s *ClientStore) ClientPath(id FileId, fileType FileType) string {
+	return filepath.Join(s.rootDir, id.Path(fileType))
 }
 
-func (s *ClientStore) Open(id FileId, create bool) (fp *os.File, err error) {
+func (s *ClientStore) EnsureDirectoryExists(id FileId) (err error) {
 	dirPath := s.ClientDirPath(id)
-	filePath := s.ClientPath(id)
 
 	// ensure directory hierarchy exists for file
 	if err = os.MkdirAll(dirPath, 0o755); err != nil {
@@ -141,18 +148,38 @@ func (s *ClientStore) Open(id FileId, create bool) (fp *os.File, err error) {
 		return
 	}
 
-	// open file, creating if necessary
-	flags := os.O_RDWR
-	action := "open"
-	if create {
-		flags |= os.O_CREATE
-		action = "create"
-	}
-	fp, err = os.OpenFile(filePath, flags, 0o644)
-	if err != nil {
+	return
+}
+
+func (s *ClientStore) WriteFile(id FileId, fileType FileType, data []byte, perm os.FileMode) (err error) {
+	if err = s.EnsureDirectoryExists(id); err != nil {
 		err = fmt.Errorf(
-			"failed to %s datastore file %q: %w",
-			action,
+			"failed to write datastore file: %w",
+			err,
+		)
+	}
+
+	filePath := s.ClientPath(id, fileType)
+	if err = os.WriteFile(filePath, data, perm); err != nil {
+		err = fmt.Errorf(
+			"failed to write datastore file %q: %w",
+			filePath,
+			err,
+		)
+		// delete any partially created file, ignoring the error
+		_ = s.Delete(id, fileType)
+		return
+	}
+
+	return
+}
+
+func (s *ClientStore) ReadFile(id FileId, fileType FileType) (data []byte, err error) {
+	filePath := s.ClientPath(id, fileType)
+
+	if data, err = os.ReadFile(filePath); err != nil {
+		err = fmt.Errorf(
+			"failed to read datastore file %q: %w",
 			filePath,
 			err,
 		)
@@ -162,8 +189,8 @@ func (s *ClientStore) Open(id FileId, create bool) (fp *os.File, err error) {
 	return
 }
 
-func (s *ClientStore) Delete(id FileId) (err error) {
-	filePath := filepath.Join(s.rootDir, id.Path())
+func (s *ClientStore) Delete(id FileId, fileType FileType) (err error) {
+	filePath := filepath.Join(s.rootDir, id.Path(fileType))
 
 	err = os.Remove(filePath)
 	if err != nil {

@@ -15,7 +15,7 @@ const (
 	smallPciSlot = 4
 )
 
-var smallModList = []string{
+var smallModData = []string{
 	"aesni_intel",
 	"af_packet",
 	"button",
@@ -71,16 +71,24 @@ var smallModList = []string{
 // weighted choice of number of disks for a small client
 var smallDiskChoices = []choice.Choice{
 	{
-		Weight: 60,
+		Weight: 50,
 		Value:  1,
 	},
 	{
-		Weight: 30,
+		Weight: 25,
 		Value:  2,
 	},
 	{
 		Weight: 10,
 		Value:  3,
+	},
+	{
+		Weight: 10,
+		Value:  4,
+	},
+	{
+		Weight: 5,
+		Value:  5,
 	},
 }
 
@@ -94,7 +102,7 @@ func SmallClient(id ClientId) *Client {
 	c.Init(CLIENT_SMALL, id, numDisk, numGPU, numNet)
 
 	c.setupPciData(smallPciDataHeader, smallPciBus, smallPciSlot)
-	c.setupModList(smallModList)
+	c.setupModData(smallModData)
 
 	return c
 }

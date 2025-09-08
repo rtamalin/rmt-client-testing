@@ -48,7 +48,7 @@ type Client struct {
 	NumGPU  int
 	NumNet  int
 	PciData *profile.ProfileInfo
-	ModList *profile.ProfileInfo
+	ModData *profile.ProfileInfo
 }
 
 type ClientHwInfo struct {
@@ -151,6 +151,11 @@ func (c *Client) Hostname() string {
 	)
 }
 
+const (
+	MOD_DATA_PROFILE = "mod_data"
+	PCI_DATA_PROFILE = "pci_data"
+)
+
 func (c *Client) SystemInfo() string {
 	sysInfo := make(map[string]any)
 	hwInfo := HwInfo[c.Type]
@@ -161,8 +166,8 @@ func (c *Client) SystemInfo() string {
 	sysInfo["hostname"] = c.Hostname()
 	sysInfo["hypervisor"] = "amazon"
 	sysInfo["mem_total"] = hwInfo.Memory
-	sysInfo["mod_list"] = c.ModList
-	sysInfo["pci_data"] = c.PciData
+	sysInfo[MOD_DATA_PROFILE] = c.ModData
+	sysInfo[PCI_DATA_PROFILE] = c.PciData
 	sysInfo["sockets"] = hwInfo.Sockets
 	sysInfo["uname"] = c.Uname()
 	sysInfo["uuid"] = c.UUID
@@ -226,8 +231,8 @@ func (c *Client) setupPciData(header []string, pciBus, pciSlot int) {
 	c.PciData = profile.NewProfileInfo(strings.Join(pciData, "\n"))
 }
 
-func (c *Client) setupModList(modList []string) {
+func (c *Client) setupModData(modList []string) {
 	ml := make([]string, len(modList))
 	copy(ml, modList)
-	c.ModList = profile.NewProfileInfo(ml)
+	c.ModData = profile.NewProfileInfo(ml)
 }

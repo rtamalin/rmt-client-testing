@@ -466,5 +466,5 @@ FodyWeavers.xsd
 
 # Repo specific ignorance
 /out
-/ClientDataStore*
+/_ClientDataStore*
 !/bin/*

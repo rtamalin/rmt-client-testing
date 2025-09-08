@@ -15,7 +15,7 @@ const (
 	largePciSlot = 4
 )
 
-var largeModList = []string{
+var largeModData = []string{
 	"aesni_intel",
 	"af_packet",
 	"blake2b_generic",
@@ -76,7 +76,7 @@ var largeModList = []string{
 // weighted choice of number of disks for a large client
 var largeDiskChoices = []choice.Choice{
 	{
-		Weight: 30,
+		Weight: 20,
 		Value:  1,
 	},
 	{
@@ -87,21 +87,33 @@ var largeDiskChoices = []choice.Choice{
 		Weight: 20,
 		Value:  3,
 	},
+	{
+		Weight: 10,
+		Value:  4,
+	},
 }
 
 // weighted choice of number of GPUs for a large client
 var largeGPUChoices = []choice.Choice{
 	{
-		Weight: 60,
+		Weight: 45,
 		Value:  0,
 	},
 	{
-		Weight: 20,
+		Weight: 15,
 		Value:  1,
 	},
 	{
-		Weight: 20,
+		Weight: 15,
 		Value:  2,
+	},
+	{
+		Weight: 15,
+		Value:  4,
+	},
+	{
+		Weight: 10,
+		Value:  8,
 	},
 }
 
@@ -115,7 +127,7 @@ func LargeClient(id ClientId) *Client {
 	c.Init(CLIENT_LARGE, id, numDisk, numGPU, numNet)
 
 	c.setupPciData(largePciDataHeader, largePciBus, largePciSlot)
-	c.setupModList(largeModList)
+	c.setupModData(largeModData)
 
 	return c
 }

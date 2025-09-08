@@ -5,7 +5,7 @@ TESTER_IMAGE ?= rmt-client-tester
 NUM_CLIENTS ?= 1000
 
 # client hwinfo data store
-CLIENT_DATA_STORE ?= $(REPO_BASE_DIR)/ClientDataStore-$(NUM_CLIENTS)
+CLIENT_DATA_STORE ?= $(REPO_BASE_DIR)/_ClientDataStore-$(NUM_CLIENTS)
 
 # env settings file
 ENV_FILE ?= $(REPO_BASE_DIR)/.env
@@ -31,7 +31,7 @@ TESTER_RUN_OPTIONS = \
 		-v $(CLIENT_DATA_STORE):/app/ClientDataStore
 
 # testing actions
-.PHONY: client-deregister client-register client-tester env-exists generate-hwinfo size-of-system-information systems-table-size
+.PHONY: client-deregister client-register client-tester env-exists generate-hwinfo
 
 env-exists:
 	if [ ! -e $(ENV_FILE) ]; then \
@@ -69,15 +69,19 @@ client-tester:
 	  $(TESTER_RUN_OPTIONS) \
 	  $(TESTER_IMAGE)
 
-size-of-system-information systems-table-size:
-	$(HELPER_DIR)/rmt-$(@)
-
 # TODO: implement deregister in rmt-hwinfo-clientctl
 client-deregister:
-	for c in $$($(HELPER_DIR)/rmt-db-query --skip-column-names -s -e "SELECT login from systems;" | tr -d '\r'); \
+	for c in $$($(HELPER_DIR)/rmt-db-query --skip-column-names -s -e "SELECT login FROM systems;" | tr -d '\r'); \
 	do \
 	  echo "[Removing $${c}]"; \
 		$(HELPER_DIR)/rmt-cli systems remove $${c} || exit 1 ; \
 	done
 	$(HELPER_DIR)/rmt-size-of-system-information
 	$(HELPER_DIR)/rmt-systems-table-size
+
+.PHONY: size-of-system-information systems-table-size system_data_profiles-table-size
+size-of-system-information systems-table-size system_data_profiles-table-size:
+	$(HELPER_DIR)/rmt-$(@)
+
+num-rmt-clients:
+	$(HELPER_DIR)/rmt-db-query 'SELECT COUNT(login) AS NumClients FROM systems;'

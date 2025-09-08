@@ -15,7 +15,7 @@ const (
 	mediumPciSlot = 4 // Starting PCI Slot for new entries
 )
 
-var mediumModList = []string{
+var mediumModData = []string{
 	"aesni_intel",
 	"af_packet",
 	"blake2b_generic",
@@ -91,12 +91,16 @@ var mediumDiskChoices = []choice.Choice{
 
 var mediumGPUChoices = []choice.Choice{
 	{
-		Weight: 95,
+		Weight: 85,
 		Value:  0,
 	},
 	{
+		Weight: 10,
+		Value:  1,
+	},
+	{
 		Weight: 5,
-		Value:  0,
+		Value:  2,
 	},
 }
 
@@ -110,7 +114,7 @@ func MediumClient(id ClientId) *Client {
 	c.Init(CLIENT_MEDIUM, id, numDisk, numGPU, numNet)
 
 	c.setupPciData(mediumPciDataHeader, mediumPciBus, mediumPciSlot)
-	c.setupModList(mediumModList)
+	c.setupModData(mediumModData)
 
 	return c
 }

@@ -25,6 +25,11 @@ This tool can be used to generate hardware system information JSON
 blobs for number of clients, which will be stored in the specified
 directory hierarchy.
 
+Also generates a `HwInfoStats.json` file in the top-level directory of
+the specified data store directory that summarizes the generated clients
+and the potential sizes and savings associated with the proposed data
+profile storage handling scheme.
+
 ## rmt-hwinfo-clientctl
 
 This tool can be used to simulate registration of clients with an
@@ -51,8 +56,17 @@ It can take as argument an SQL query that will be executed, otherwise
 it drops the user into an interactive mariadb session, connected to
 the RMT DB.
 
+## rmt-db-get-table-size
+A helper script that leverages `rmt-db-query` to query the sizes of
+tables in the RMT's DB.
+
 ## rmt-systems-table-size
-A wrapper script for the rmt-db-query helper that calls it with an
+A wrapper script for the `rmt-db-get-table-size` helper script that
+calls it with the name of appropriate table name.
+
+## rmt-system_data_profiles-table-size
+A wrapper script for the `rmt-db-get-table-size` helper script that
+calls it with the name of appropriate table name.
 
 ## rmt-size-of-system-information
 A wrapper script for the rmt-db-query helper that calls it with an
