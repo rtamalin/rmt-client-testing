@@ -19,7 +19,7 @@ ARG SLE_BCI_VERSION=15.7
 # suseconnect Settings
 ARG CONNECT_REPO=SUSE/connect-ng
 #ARG CONNECT_REF=next
-ARG CONNECT_REF=demo-app-with-info
+ARG CONNECT_REF=data_profiles_in_extra_data
 
 #
 # Build the code in BCI golang based image
