@@ -1,5 +1,5 @@
-github.com/SUSE/connect-ng v1.15.1-0.20250908173057-843d15e4ef66 h1:vixKxMv/0Qnt2kuWqy859k7PJ+OWmtdgygRitlJHZN4=
-github.com/SUSE/connect-ng v1.15.1-0.20250908173057-843d15e4ef66/go.mod h1:iOl7a5Dn2kX9tJtDVzNblhtaS640WyhvgibCBk9Bt4s=
+github.com/SUSE/connect-ng v1.15.1-0.20250918142025-bea640528db5 h1:ogFUL5yMLM37ZFmne0yBwsT5eK6w4hEpVPHDzB4N1f0=
+github.com/SUSE/connect-ng v1.15.1-0.20250918142025-bea640528db5/go.mod h1:iOl7a5Dn2kX9tJtDVzNblhtaS640WyhvgibCBk9Bt4s=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
