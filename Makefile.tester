@@ -17,6 +17,7 @@ HELPER_DIR ?= $(REPO_BASE_DIR)/bin
 PRODUCT ?= SLES
 VERSION ?= 15.7
 ARCH ?= x86_64
+PRODDUCT_SPEC = $(PRODUCT)/$(VERSION)/$(ARCH)
 
 # RMT specification
 RMT_HOST ?= localhost
@@ -30,23 +31,35 @@ TESTER_RUN_OPTIONS = \
 		-v $(REPO_BASE_DIR):/app/tester \
 		-v $(CLIENT_DATA_STORE):/app/ClientDataStore
 
+# RMT setup actions
+.PHONY: rmt-setup
+
+rmt-setup:
+	bin/rmt-cli sync
+	bin/rmt-cli product enable $(PRODUCT_SPEC)
+	bin/rmt-cli mirror all
+
 # testing actions
 .PHONY: client-deregister client-register client-tester env-exists generate-hwinfo
 
 env-exists:
-	if [ ! -e $(ENV_FILE) ]; then \
+	@if [ ! -e $(ENV_FILE) ]; then \
 	  echo "Please create a .env file in the repo; copy it from your SUSE/rmt repo"; \
-		exit 1; \
+	  exit 1; \
 	fi
 
 generate-hwinfo: build
-	out/rmt-hwinfo-generator \
+	if [ ! -d $(CLIENT_DATA_STORE) ]; then \
+	  out/rmt-hwinfo-generator \
 		--datastore $(CLIENT_DATA_STORE) \
-		--clients $(NUM_CLIENTS)
+		--clients $(NUM_CLIENTS); \
+	fi
+	@if [ ! -d $(CLIENT_DATA_STORE) ]; then \
+	  echo Failed create client data store for $(NUM_CLIENTS); \
+	  exit 1; \
+	fi
 
-$(CLIENT_DATA_STORE): generate-hwinfo
-
-client-register: env-exists $(CLIENT_DATA_STORE) docker-build
+client-register: env-exists generate-hwinfo docker-build
 	. $(ENV_FILE); \
 	$(CNTR_MGR) run \
 	  $(TESTER_RUN_OPTIONS) \
