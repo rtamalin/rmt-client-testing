@@ -1,13 +1,17 @@
 // Derived from cmd/public-api-demo in github.com/SUSE/connect-ng's next branch
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/SUSE/connect-ng/pkg/connection"
+)
 
 type SccCredentials struct {
-	SystemLogin string
-	Password    string
-	SystemToken string
-	ShowTraces  bool
+	SystemLogin string `json:"system_login"`
+	Password    string `json:"password"`
+	SystemToken string `json:"system_loken"`
+	ShowTraces  bool   `json:"show_traces"`
 }
 
 func (SccCredentials) HasAuthentication() bool {
@@ -48,3 +52,5 @@ func (creds *SccCredentials) SetLogin(login, password string) error {
 	creds.Password = password
 	return nil
 }
+
+var _ connection.Credentials = (*SccCredentials)(nil)

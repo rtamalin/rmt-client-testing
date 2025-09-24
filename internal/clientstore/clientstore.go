@@ -190,7 +190,7 @@ func (s *ClientStore) ReadFile(id FileId, fileType FileType) (data []byte, err e
 }
 
 func (s *ClientStore) Delete(id FileId, fileType FileType) (err error) {
-	filePath := filepath.Join(s.rootDir, id.Path(fileType))
+	filePath := s.ClientPath(id, fileType)
 
 	err = os.Remove(filePath)
 	if err != nil {
@@ -203,4 +203,25 @@ func (s *ClientStore) Delete(id FileId, fileType FileType) (err error) {
 	}
 
 	return
+}
+
+func (s *ClientStore) Exists(id FileId, fileType FileType) bool {
+	filePath := s.ClientPath(id, fileType)
+
+	st, err := os.Stat(filePath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			// doesn't exist
+			return false
+		}
+
+		// some other error, possibly path access permissions
+		return false
+	}
+	if st.IsDir() {
+		// path does exist but is a directory, but doesn't matter for now
+		return true
+	}
+
+	return true
 }

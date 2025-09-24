@@ -40,7 +40,7 @@ rmt-setup:
 	bin/rmt-cli mirror all
 
 # testing actions
-.PHONY: client-deregister client-register client-tester env-exists generate-hwinfo
+.PHONY: remove-clients client-deregister client-register client-update client-tester env-exists generate-hwinfo
 
 env-exists:
 	@if [ ! -e $(ENV_FILE) ]; then \
@@ -59,13 +59,13 @@ generate-hwinfo: build
 	  exit 1; \
 	fi
 
-client-register: env-exists generate-hwinfo docker-build
+client-register client-update client-deregister: env-exists generate-hwinfo docker-build
 	. $(ENV_FILE); \
 	$(CNTR_MGR) run \
 	  $(TESTER_RUN_OPTIONS) \
 		--entrypoint /app/bin/rmt-hwinfo-clientctl \
 	  $(TESTER_IMAGE) \
-				--action register \
+				--action $(subst client-,,$@) \
 				--clients $(NUM_CLIENTS) \
 				--product $(PRODUCT) \
 				--version $(VERSION) \
@@ -83,7 +83,7 @@ client-tester:
 	  $(TESTER_IMAGE)
 
 # TODO: implement deregister in rmt-hwinfo-clientctl
-client-deregister:
+remove-clients:
 	for c in $$($(HELPER_DIR)/rmt-db-query --skip-column-names -s -e "SELECT login FROM systems;" | tr -d '\r'); \
 	do \
 	  echo "[Removing $${c}]"; \

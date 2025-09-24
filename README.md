@@ -21,6 +21,41 @@ Ensure that you have setup an RMT development environment using the
 You can run `make rmt-setup` to ensure that the RMT is setup to support
 registering clients with your configured registration code.
 
+## Simulating client registrations
+
+You can run `make client-register` to register a number of simulated
+clients, controlled by the NUM_CLIENTS Makefile variable, defaulting
+to 1000.
+
+You can override the number of clients by specifying the desired value
+on the make command line, e.g. `make NUM_CLIENTS=100 client-register`.
+
+If the required hardware info to simulate the specified number of
+clients doesn't exist, it will be automatically generated using the
+`rmt-hwinfo-generator` tool. This data can also be manually generated
+using the `make NUM_CLIENTS generated-hwinfo`. The `HwInfoStats.json`
+file in the top-level directory of the generated client datastore
+provides details about the generated set of simulated clients.
+
+## Simulating client keepalive heartbeat updates
+
+You can simulate clients sending keepalive heartbeat updates using 
+the `client-update` Makefile target, again with the number of clients
+being controlled via the `NUM_CLIENTS` Makefile variable.
+
+To simulate triggering keepalive heartbeat updates for 100 clients,
+you can run `make NUM_CLIENTS=100 client-update`. You will need to
+have registered those simulated clients first though.
+
+## Simulating client deregistration.
+
+You can simulate clients deregistering using the `client-deregister`
+Makefile target, again with the number of clients being controlled
+via the `NUM_CLIENTS` Makefile variable.
+
+To deregister 100 simulated clients that were previously registered
+you can run `make NUM_CLIENTS-100 client-deregister`.
+
 # Tools available in this repo
 
 The repo provides a number of tools for use with testing client
@@ -43,9 +78,9 @@ profile storage handling scheme.
 
 ## rmt-hwinfo-clientctl
 
-This tool can be used to simulate registration of clients with an
-RMT using the provided hardware system information JSON blobs to
-register those clients.
+This tool can be used to simulate the registration, update (keepalive
+heartbeat), and deregistration actions of clients with an RMT using the
+provided hardware system information JSON blobs to register those clients.
 
 # Helper Scripts
 
