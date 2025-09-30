@@ -1,5 +1,10 @@
 #!/bin/bash
 
+set -eu
+if [[ -n "${TRACE:+true}" ]]; then
+    set -vx
+fi
+
 cmdName=$(basename ${BASH_SOURCE[0]})
 binDir=$(readlink -e $(dirname ${BASH_SOURCE[0]}))
 dbTableSize=${binDir}/rmt-db-get-table-size
@@ -20,5 +25,7 @@ case "${cmdName}" in
         ;;
 esac
 
-${dbTableSize} ${dbTable}
+exec \
+    ${DEBUG:+true} \
+    ${dbTableSize} ${dbTable}
 # vim:shiftwidth=4:tabstop=4:expandtab

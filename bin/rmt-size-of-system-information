@@ -1,5 +1,10 @@
 #!/bin/bash
 
+set -eu
+if [[ -n "${TRACE:+true}" ]]; then
+    set -vx
+fi
+
 cmdName=$(basename ${BASH_SOURCE[0]})
 binDir=$(readlink -e $(dirname ${BASH_SOURCE[0]}))
 dbQuery=${binDir}/rmt-db-query
@@ -9,7 +14,9 @@ if [[ ! -x ${dbQuery} ]]; then
     exit 1
 fi
 
-${dbQuery} "
+exec \
+    ${DEBUG:+echo} \
+    ${dbQuery} "
 SELECT
     COUNT(system_information) AS \`# Systems\`,
     ROUND((SUM(LENGTH(system_information))/1024)/1024, 3) AS \`Total MiB\`

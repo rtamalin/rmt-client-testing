@@ -1,5 +1,10 @@
 #!/bin/bash
 
+set -eu
+if [[ -n "${TRACE:+true}" ]]; then
+    set -vx
+fi
+
 cmdName=$(basename ${BASH_SOURCE[0]})
 binDir=$(readlink -e $(dirname ${BASH_SOURCE[0]}))
 dbQuery=${binDir}/rmt-db-query
@@ -24,7 +29,9 @@ fi
 dbTable="${1}"
 dbName="${2:-rmt}"
 
-${dbQuery} "
+exec \
+    ${DEBUG:+echo} \
+    ${dbQuery} "
 SELECT 
     TABLE_NAME AS \`Table\`,
     ROUND(((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024), 3) AS \`Size in MiB\`
