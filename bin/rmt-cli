@@ -1,5 +1,10 @@
 #!/bin/bash
 
+set -eu
+if [[ -n "${TRACE:+true}" ]]; then
+    set -vx
+fi
+
 cmdName=$(basename ${BASH_SOURCE[0]})
 binDir=$(readlink -e $(dirname ${BASH_SOURCE[0]}))
 repoDir=$(dirname ${binDir})
@@ -13,14 +18,39 @@ fi
 
 . ${rmtEnv}
 
-dockerArgs=(
-    exec
-    -ti
-    ${rmtCntr}
-)
+if [[ -n "${RMT_CNTR}" ]]; then
+    # Use docker if a container name is set
+    runner=docker
+else
+    # Otherwise using SSH
+    runner=ssh
+fi
 
-docker \
-    "${dockerArgs[@]}" \
+runnerArgs=()
+
+case "${runner}" in
+(docker)
+    runnerArgs+=(
+        exec
+        -ti
+        ${rmtCntr}
+    )
+    ;;
+(ssh)
+    runnerArgs+=(
+        ${RMT_USER:+${RMT_USER}@}${RMT_HOST}
+    )
+    ;;
+(*)
+    echo "ERROR: Not a supported runner: '${runner}'"
+    exit 1
+    ;;
+esac
+
+exec \
+    ${DEBUG:+echo} \
+    ${runner} \
+    "${runnerArgs[@]}" \
     rmt-cli \
     "${@}"
 

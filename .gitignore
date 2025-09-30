@@ -465,6 +465,8 @@ FodyWeavers.xsd
 *.msp
 
 # Repo specific ignorance
-/out
-/_ClientDataStore*
 !/bin/*
+/_ClientDataStore*
+/out
+/rmt-ca.crt
+/instdata

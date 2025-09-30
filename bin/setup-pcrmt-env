@@ -1,0 +1,53 @@
+#!/bin/bash
+
+set -eu
+
+if [[ -n "${TRACE:+true}" ]]; then
+    set -v -x
+fi
+
+cmdName=$(basename ${BASH_SOURCE[0]})
+binDir=$(readlink -e $(dirname ${BASH_SOURCE[0]}))
+repoDir=$(dirname ${binDir})
+rmtEnv=${repoDir}/.env
+
+if (( $# < 1 )); then
+    echo "Usage: ${cmdName} <pcrmt> [<regcode>]"
+    exit 1
+fi
+
+if [[ -s "${rmtEnv}" ]]; then
+    echo "ERROR: An environment file, ${rmtEnv}, already exists."
+    exit 1
+fi
+
+pcrmtHost="${1}"
+regCode="${2:-}"
+
+case "${pcrmtHost}" in
+    (*@*)
+        pcrmtUser="${pcrmtHost%@*}"
+        pcrmtHost="${pcrmtHost#${pcrmtUser}@}"
+        ;;
+esac
+
+pcrmtIp=$(getent hosts ${pcrmtHost} | awk '{print $1}')
+if [[ -z "${pcrmtIp}" ]]; then
+    echo "ERROR: unable to resolve '${pcrmtHost}' to an IP Address"
+    exit 1
+fi
+
+ssh "${1}" "python3 -c 'import yaml; \
+sq = chr(0x27); \
+rmt_conf = yaml.safe_load(open(\"/etc/rmt.conf\").read()); \
+db_conf = rmt_conf[\"database\"]; \
+rmt_db = db_conf[\"database\"]; \
+rmt_host = db_conf[\"host\"]; \
+rmt_passwd = db_conf[\"password\"]; \
+rmt_user = db_conf[\"username\"]; \
+print(f\"# RMT Connectivity\nRMT_HOST=${pcrmtHost}\nRMT_IP=${pcrmtIp}\nRMT_USER=${pcrmtUser:- #Specify if needed}\n#RMT_CNTR=rmt-rmt-1\nEXTERNAL_PORT=${EXTERNAL_PORT:- #Configure an external port if needed}\n\n# Mysql\nMYSQL_DATABASE={sq}{rmt_db}{sq}\nMYSQL_HOST={sq}{rmt_host}{sq}\nMYSQL_PASSWORD={sq}{rmt_passwd}{sq}\nMYSQL_USER={sq}{rmt_user}{sq}\n\n# Product Registration Settings\nPRODUCT=SLES\nVERSION=15.7\nARCH=x86_64\nREG_CODE=${regCode:- #Configure an appropriate reg code}\n\"); \
+'" > ${rmtEnv}
+
+exit 0
+
+# vim:shiftwidth=4:tabstop=4:expandtab

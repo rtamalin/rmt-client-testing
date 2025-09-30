@@ -1,10 +1,14 @@
 #!/bin/bash
 
+set -eu
+if [[ -n "${TRACE:+true}" ]]; then
+    set -vx
+fi
+
 cmdName=$(basename ${BASH_SOURCE[0]})
 binDir=$(readlink -e $(dirname ${BASH_SOURCE[0]}))
 repoDir=$(dirname ${binDir})
 rmtEnv=${repoDir}/.env
-rmtCntr=${RMT_CNTR:-rmt-rmt-1}
 
 if [[ ! -r ${rmtEnv} ]]; then
     echo "Ensure env is setup"
@@ -13,11 +17,41 @@ fi
 
 . ${rmtEnv}
 
-dockerArgs=(
-    exec
-    -ti
-    ${rmtCntr}
-)
+if [[ -n "${RMT_CNTR:-}" ]]; then
+    # Use docker if a container name is set
+    runner=docker
+else
+    # Otherwise using SSH
+    runner=ssh
+fi
+
+runnerArgs=()
+dbCmdQuote=
+
+case "${runner}" in
+(docker)
+    runnerArgs+=(
+        exec
+        -ti
+        ${RMT_CNTR}
+    )
+    ;;
+(ssh)
+    runnerArgs+=(
+        ${RMT_USER:+${RMT_USER}@}${RMT_HOST}
+    )
+    # if starting an interactive session ensure a pty is setup
+    if (( $# == 0 )); then
+        runnerArgs+=( -ttt )
+    fi
+    # if specifying a DB command need to include extra quotes
+    dbCmdQuote="'"
+    ;;
+(*)
+    echo "ERROR: Not a supported runner: '${runner}'"
+    exit 1
+    ;;
+esac
 
 dbCmd=(
     env
@@ -31,14 +65,16 @@ dbCmd=(
 if (( $# > 0 )); then
     # handle simple query vs flags being passed in
     if [[ "${1:0:1}" != "-" ]]; then
-        dbCmd+=( -e "${*}" )
+        dbCmd+=( -e ${dbCmdQuote} "${*}" ${dbCmdQuote} )
     else
         dbCmd+=( "${@}" )
     fi
 fi
 
-docker \
-    "${dockerArgs[@]}" \
+exec \
+    ${DEBUG:+echo} \
+    ${runner} \
+    "${runnerArgs[@]}" \
     "${dbCmd[@]}"
 
 # vim:shiftwidth=4:tabstop=4:expandtab
