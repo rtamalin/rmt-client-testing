@@ -24,7 +24,7 @@ dbCmd=(
     MYSQL_PWD="${MYSQL_PASSWORD}"
     mariadb
     -u "${MYSQL_USER}"
-    -h db
+    -h "${MYSQL_HOST}"
     -D "${MYSQL_DATABASE}"
 )
 

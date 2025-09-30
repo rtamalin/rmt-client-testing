@@ -37,3 +37,13 @@ func loadCert(certPath string) (cert *x509.Certificate, err error) {
 
 	return x509.ParseCertificate(block.Bytes)
 }
+
+func loadInstData(instDataPath string) (instData string, err error) {
+	instDataBytes, err := os.ReadFile(instDataPath)
+	if err != nil {
+		return
+	}
+
+	instData = string(instDataBytes)
+	return
+}

@@ -13,22 +13,24 @@ import (
 )
 
 type CliOpts struct {
-	Action     CliAction
-	NumClients flagtypes.Uint32
-	DataStore  string
-	Product    string
-	Version    string
-	Arch       string
-	SccHost    string
-	ApiCert    string
-	PrefLang   string
-	RegCode    string
-	Trace      bool
+	Action       CliAction
+	NumClients   flagtypes.Uint32
+	DataStore    string
+	Product      string
+	Version      string
+	Arch         string
+	SccHost      string
+	ApiCert      string
+	PrefLang     string
+	RegCode      string
+	InstDataPath string
+	Trace        bool
 
 	// derived values
 	appName     string
 	cert        *x509.Certificate
 	clientStore *clientstore.ClientStore
+	instData    string
 }
 
 var cliOpt_defaults = CliOpts{
@@ -38,8 +40,8 @@ var cliOpt_defaults = CliOpts{
 	Product:    "SLES",
 	Version:    "15.7",
 	Arch:       "x86_64",
-	ApiCert:    "",
 	PrefLang:   langPreference(),
+	instData:   "<document>{}</document>",
 }
 
 var cliOpts CliOpts
@@ -151,6 +153,11 @@ func parseCliArgs(opts *CliOpts) {
 			"RegCode",
 			"REGCODE",
 		},
+		{
+			&opts.InstDataPath,
+			"InstanceData",
+			"INST_DATA",
+		},
 	}
 	for _, o := range stringEnvOverrides {
 		stringEnvOverride(o.opt, o.varName, o.envName)
@@ -181,6 +188,7 @@ func parseCliArgs(opts *CliOpts) {
 	flag.StringVar(&opts.ApiCert, "api-cert", opts.ApiCert, "The `API_CERT` to use with specified SCC_HOST.")
 	flag.StringVar(&opts.PrefLang, "lang", opts.PrefLang, "Preferred language `PREF_LANG` to use when interacting with specified SCC_HOST.")
 	flag.StringVar(&opts.RegCode, "regcode", opts.RegCode, "The `REGCODE` to use when registering with specified SCC_HOST.")
+	flag.StringVar(&opts.RegCode, "instdata", opts.InstDataPath, "The `INST_DATA` to use when registering with specified SCC_HOST.")
 	flag.BoolVar(&opts.Trace, "trace", opts.Trace, "Enable tracing of operations.")
 
 	flag.Parse()
@@ -205,4 +213,17 @@ func parseCliArgs(opts *CliOpts) {
 
 	// setup the clientStore
 	opts.clientStore = clientstore.New(opts.DataStore)
+
+	// load the instance data is specified
+	if opts.InstDataPath != "" {
+		var err error
+		opts.instData, err = loadInstData(opts.InstDataPath)
+		if err != nil {
+			log.Fatalf(
+				"ERROR: Failed to load specified INST_DATA %q: %s",
+				opts.InstDataPath,
+				err.Error(),
+			)
+		}
+	}
 }

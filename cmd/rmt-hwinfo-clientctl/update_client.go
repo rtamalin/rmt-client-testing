@@ -50,7 +50,7 @@ func updateClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	sccCreds := regInfo.SccCreds
 
 	// generate the client's extraData
-	extraData := extraDataWithDataProfiles(sysInfo)
+	extraData := extraDataWithDataProfiles(sysInfo, cliOpts)
 
 	if cliOpts.SccHost != "" {
 		connectOpts.URL = cliOpts.SccHost

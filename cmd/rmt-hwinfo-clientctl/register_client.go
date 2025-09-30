@@ -28,7 +28,7 @@ func registerClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	}
 
 	// generate the client's extraData
-	extraData := extraDataWithDataProfiles(sysInfo)
+	extraData := extraDataWithDataProfiles(sysInfo, cliOpts)
 
 	if cliOpts.SccHost != "" {
 		connectOpts.URL = cliOpts.SccHost

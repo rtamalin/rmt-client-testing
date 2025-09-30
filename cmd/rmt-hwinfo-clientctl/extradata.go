@@ -2,9 +2,9 @@ package main
 
 import "github.com/SUSE/connect-ng/pkg/registration"
 
-func extraDataWithDataProfiles(sysInfo SysInfo) registration.ExtraData {
+func extraDataWithDataProfiles(sysInfo SysInfo, cliOpts *CliOpts) registration.ExtraData {
 	extraData := registration.ExtraData{
-		"instance_data": "<document>{}</document>",
+		"instance_data": cliOpts.instData,
 	}
 
 	// add data profiles to extraData.dataProfiles, removing them from sysInfo
