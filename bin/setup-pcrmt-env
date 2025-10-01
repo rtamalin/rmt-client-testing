@@ -12,7 +12,7 @@ repoDir=$(dirname ${binDir})
 rmtEnv=${repoDir}/.env
 
 if (( $# < 1 )); then
-    echo "Usage: ${cmdName} <pcrmt> [<regcode>]"
+    echo "Usage: ${cmdName} [<user>@]<pcrmt>"
     exit 1
 fi
 
@@ -22,8 +22,6 @@ if [[ -s "${rmtEnv}" ]]; then
 fi
 
 pcrmtHost="${1}"
-regCode="${2:-}"
-
 case "${pcrmtHost}" in
     (*@*)
         pcrmtUser="${pcrmtHost%@*}"
@@ -33,10 +31,16 @@ esac
 
 pcrmtIp=$(getent hosts ${pcrmtHost} | awk '{print $1}')
 if [[ -z "${pcrmtIp}" ]]; then
-    echo "ERROR: unable to resolve '${pcrmtHost}' to an IP Address"
+    echo "ERROR: unable to resolve '${pcrmtHost}' to an IP Address."
+    echo "       If not managed by DNS configure a /etc/hosts override."
     exit 1
 fi
 
+pcrmtCert=rmt-ca.crt
+echo "[Retrieving RMT CA Cert as ${pcrmtCert}]"
+wget -qO ${repoDir}/${pcrmtCert} http://${pcrmtHost}/rmt.crt
+
+echo "[Generating .env file]"
 ssh "${1}" "python3 -c 'import yaml; \
 sq = chr(0x27); \
 rmt_conf = yaml.safe_load(open(\"/etc/rmt.conf\").read()); \
@@ -45,7 +49,30 @@ rmt_db = db_conf[\"database\"]; \
 rmt_host = db_conf[\"host\"]; \
 rmt_passwd = db_conf[\"password\"]; \
 rmt_user = db_conf[\"username\"]; \
-print(f\"# RMT Connectivity\nRMT_HOST=${pcrmtHost}\nRMT_IP=${pcrmtIp}\nRMT_USER=${pcrmtUser:- #Specify if needed}\n#RMT_CNTR=rmt-rmt-1\nEXTERNAL_PORT=${EXTERNAL_PORT:- #Configure an external port if needed}\n\n# Mysql\nMYSQL_DATABASE={sq}{rmt_db}{sq}\nMYSQL_HOST={sq}{rmt_host}{sq}\nMYSQL_PASSWORD={sq}{rmt_passwd}{sq}\nMYSQL_USER={sq}{rmt_user}{sq}\n\n# Product Registration Settings\nPRODUCT=SLES\nVERSION=15.7\nARCH=x86_64\nREG_CODE=${regCode:- #Configure an appropriate reg code}\n\"); \
+print( \
+f\"# RMT Tester Environment Settings\n\" \
+\"#\n\" \
+\"# NOTE: Included by both shell and Makefile, so stick to var=value assignments\n\" \
+\"\n\" \
+\"# RMT Connectivity Settings\n\" \
+\"#RMT_CNTR=rmt-rmt-1\n\" \
+\"RMT_CERT=${repoDir}/${pcrmtCert}\n\" \
+\"RMT_HOST=${pcrmtHost}\n\" \
+\"RMT_IP=${pcrmtIp}\n\" \
+\"RMT_USER=${pcrmtUser:- #Specify if needed}\n\" \
+\"EXTERNAL_PORT=${EXTERNAL_PORT:- #Configure an external port if needed}\n\" \
+\"\n\" \
+\"# MariaDB (mysql) Settings\n\" \
+\"MYSQL_DATABASE={sq}{rmt_db}{sq}\n\" \
+\"MYSQL_HOST={sq}{rmt_host}{sq}\n\" \
+\"MYSQL_PASSWORD={sq}{rmt_passwd}{sq}\n\" \
+\"MYSQL_USER={sq}{rmt_user}{sq}\n\" \
+\"\n\" \
+\"# Product Registration Settings\n\" \
+\"PRODUCT=SLES\n\" \
+\"VERSION=15.7\n\" \
+\"ARCH=x86_64\n\" \
+\"REG_CODE=${regCode:- #Not needed for PubCloud RMT}\n\"); \
 '" > ${rmtEnv}
 
 exit 0

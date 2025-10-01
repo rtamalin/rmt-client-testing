@@ -468,5 +468,5 @@ FodyWeavers.xsd
 !/bin/*
 /_ClientDataStore*
 /out
-/rmt-ca.crt
-/instdata
+/rmt*.crt
+/instdata*

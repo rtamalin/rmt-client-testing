@@ -188,7 +188,7 @@ func parseCliArgs(opts *CliOpts) {
 	flag.StringVar(&opts.ApiCert, "api-cert", opts.ApiCert, "The `API_CERT` to use with specified SCC_HOST.")
 	flag.StringVar(&opts.PrefLang, "lang", opts.PrefLang, "Preferred language `PREF_LANG` to use when interacting with specified SCC_HOST.")
 	flag.StringVar(&opts.RegCode, "regcode", opts.RegCode, "The `REGCODE` to use when registering with specified SCC_HOST.")
-	flag.StringVar(&opts.RegCode, "instdata", opts.InstDataPath, "The `INST_DATA` to use when registering with specified SCC_HOST.")
+	flag.StringVar(&opts.InstDataPath, "instdata", opts.InstDataPath, "The `INST_DATA` to use when registering with specified SCC_HOST.")
 	flag.BoolVar(&opts.Trace, "trace", opts.Trace, "Enable tracing of operations.")
 
 	flag.Parse()
@@ -226,4 +226,6 @@ func parseCliArgs(opts *CliOpts) {
 			)
 		}
 	}
+
+	configTracing(opts.Trace)
 }

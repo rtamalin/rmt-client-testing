@@ -1,6 +1,8 @@
 package main
 
-import "github.com/SUSE/connect-ng/pkg/registration"
+import (
+	"github.com/SUSE/connect-ng/pkg/registration"
+)
 
 func extraDataWithDataProfiles(sysInfo SysInfo, cliOpts *CliOpts) registration.ExtraData {
 	extraData := registration.ExtraData{

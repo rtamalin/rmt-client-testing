@@ -1,3 +1,5 @@
+include $(REPO_BASE_DIR)/.env
+
 # tester container image
 TESTER_IMAGE ?= rmt-client-tester
 
@@ -9,6 +11,8 @@ CLIENT_DATA_STORE ?= $(REPO_BASE_DIR)/_ClientDataStore-$(NUM_CLIENTS)
 
 # env settings file
 ENV_FILE ?= $(REPO_BASE_DIR)/.env
+
+# instance data
 
 # helper script dir
 HELPER_DIR ?= $(REPO_BASE_DIR)/bin
@@ -24,12 +28,12 @@ RMT_HOST ?= localhost
 
 # tester image run options
 TESTER_RUN_OPTIONS = \
-	  --rm \
-	  --network=host \
-		--cap-add=sys_rawio \
-		--device /dev/mem:/dev/mem \
-		-v $(REPO_BASE_DIR):/app/tester \
-		-v $(CLIENT_DATA_STORE):/app/ClientDataStore
+	--rm \
+	--network=host \
+	--cap-add=sys_rawio \
+	--device /dev/mem:/dev/mem \
+	-v $(REPO_BASE_DIR):/app/tester \
+	-v $(CLIENT_DATA_STORE):/app/ClientDataStore
 
 # RMT setup actions
 .PHONY: rmt-setup
@@ -71,7 +75,7 @@ client-register client-update client-deregister: env-exists generate-hwinfo dock
 				--version $(VERSION) \
 				--arch $(ARCH) \
 				--datastore /app/ClientDataStore \
-				--scc-host http://$(RMT_HOST)$${EXTERNAL_PORT:+:$${EXTERNAL_PORT}}/ \
+				--scc-host http://$${RMT_HOST}$${EXTERNAL_PORT:+:$${EXTERNAL_PORT}}/ \
 				--regcode $${REG_CODE}
 	$(HELPER_DIR)/rmt-size-of-system-information
 	$(HELPER_DIR)/rmt-systems-table-size

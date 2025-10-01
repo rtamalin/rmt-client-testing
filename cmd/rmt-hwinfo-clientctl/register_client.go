@@ -85,7 +85,11 @@ func registerClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 		trace("first 40 characters: %s", string(payload[0:40]))
 	}
 
-	bold("Registering client %q against %q using a registration code", hostname, connectOpts.URL)
+	var regMsg = "Registering client %q against %q using instance data"
+	if cliOpts.RegCode != "" {
+		regMsg = "Registering client %q against %q using a registration code"
+	}
+	bold(regMsg, hostname, connectOpts.URL)
 	regId, err := registration.Register(conn, cliOpts.RegCode, hostname, sysInfo, extraData)
 	if err != nil {
 		err = fmt.Errorf(

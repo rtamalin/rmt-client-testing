@@ -7,12 +7,21 @@ import (
 	"os"
 )
 
+// enable to show trace messages
+var traceEnabled = false
+
+func configTracing(enableTracing bool) {
+	traceEnabled = enableTracing
+}
+
 func bold(format string, args ...any) {
 	fmt.Printf(BoldOn+format+BoldOff+"\n", args...)
 }
 
 func trace(format string, args ...any) {
-	fmt.Printf(TracePrefix+format+"\n", args...)
+	if traceEnabled {
+		fmt.Printf(TracePrefix+format+"\n", args...)
+	}
 }
 
 func langPreference() string {
