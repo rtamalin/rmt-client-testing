@@ -26,7 +26,7 @@ func main() {
 
 	parseCliArgs(&cliOpts)
 
-	wq := workqueue.NewWorkQueue("testq", cliOpts.NumJobs)
+	wq := workqueue.NewWorkQueue(cliOpts.Action.String(), cliOpts.NumJobs)
 
 	wq.Start()
 	for i := int64(0); i < cliOpts.NumClients; i++ {

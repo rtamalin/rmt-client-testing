@@ -248,7 +248,7 @@ func parseCliArgs(opts *CliOpts) {
 
 	// warn if trying to register without specifying REGCODE or INST_DATA
 	if opts.Action == ACTION_REGISTER &&
-		((opts.RegCode == "") || (opts.InstDataPath == "")) {
+		(opts.RegCode == "") && (opts.InstDataPath == "") {
 		log.Println("WARNING: No REGCODE or INST_DATA specified for register action.")
 	}
 
