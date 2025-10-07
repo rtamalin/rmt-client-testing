@@ -37,8 +37,8 @@ TESTER_RUN_OPTIONS = \
 	--device /dev/mem:/dev/mem \
 	$(if $(RMT_IP),--add-host=$(strip $(RMT_HOST)):$(strip $(RMT_IP)),) \
 	-v $(REPO_BASE_DIR):/app/tester \
-	$(if $(RMT_CERT),-v $(strip $(RMT_CERT)):/app/rmt-ca.crt,) \
-	$(if $(INST_DATA),-v $(strip $(INST_DATA)):/app/instdata.xml,) \
+	$(if $(RMT_CERT),-v $(abspath $(strip $(RMT_CERT))):/app/rmt-ca.crt,) \
+	$(if $(INST_DATA),-v $(abspath $(strip $(INST_DATA))):/app/instdata.xml,) \
 	-v $(CLIENT_DATA_STORE):/app/ClientDataStore
 
 # RMT setup actions
