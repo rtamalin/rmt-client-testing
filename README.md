@@ -18,6 +18,17 @@ specifies the registration code to use when registering clients.
 The first requirement is to ensure that an appropriate `.env` has been
 generated and is available in the top-level directory of the cloned repo.
 
+If using a local docker based RMT then you need to ensure that a valid
+REG_CODE value is specified in the `.env` file, either by specifying it
+to the helper script when generating the env file, or by manually adding
+it later.
+
+If targetting a PubCloud RMT then you need to ensure that a file that
+contains a valid instance data XML document exists, and it's path must
+be specified as the INST_DATA setting in the `.env` file. This can be
+achieved by specifying the path as the second argument when calling the
+helper script to generate the env file, or by manually adding it later.
+
 Next the RMT should be setup appropriately to mirror the appropriate
 product, defaulting to SLES/15.7/x86_64, which will be used by the
 simulated client registrations.
@@ -34,10 +45,18 @@ assist with generating a viable `.env` file:
   - Generates a `.env` file targetting a local docker compose based RMT
     dev env deployment if called with the path to the deployment's
     `.env` file.
+  - An optional second argument can be used to specifying a client
+    registration code that will be stored as the REG_CODE setting in
+    the generated `.env` file.
 
 * `bin/setup-pcrmt-env`
   - Generates a `.env` file targetting the specified, SSH accessible,
     RMT instance, when called with the appropriate `<user>@<host>` values.
+  - An optional second argument specifying the path to a file containing
+    an appropriate client instance data XML document which will be used
+    instead of a REG_CODE when registering client systems against a
+    PubCloud RMT. This path will be available as the INST_DATA setting
+    in the the generated `.env` file.
   - NOTE: SSH access must already have been configured for the current
     user.
 

@@ -10,10 +10,9 @@ cmdName=$(basename ${BASH_SOURCE[0]})
 binDir=$(readlink -e $(dirname ${BASH_SOURCE[0]}))
 repoDir=$(dirname ${binDir})
 envFile=${repoDir}/.env
-instData=instData.xml
 
 if (( $# < 1 )); then
-    echo "Usage: ${cmdName} [<user>@]<pcrmt>"
+    echo "Usage: ${cmdName} [<user>@]<pcrmt> [<instDataPath>]"
     exit 1
 fi
 
@@ -36,6 +35,8 @@ if [[ -z "${pcrmtIp}" ]]; then
     echo "       If not managed by DNS configure a /etc/hosts override."
     exit 1
 fi
+
+instData=${2:-${INST_DATA:-instdata.xml}}
 
 pcrmtCert=rmt-ca.crt
 echo "[Retrieving RMT CA Cert as ${pcrmtCert}]"
