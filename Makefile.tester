@@ -27,7 +27,7 @@ PRODUCT_SPEC = $(PRODUCT)/$(VERSION)/$(ARCH)
 RMT_HOST ?= localhost
 
 # SCC_HOST_URI derived from RMT settings
-SCC_HOST_URI ?= http://$(strip $(RMT_HOST))$(if $(EXTERNAL_PORT),:$(strip $(EXTERNAL_PORT)),)/
+SCC_HOST_URI ?= http$(if $(RMT_CERT),s,)://$(strip $(RMT_HOST))$(if $(EXTERNAL_PORT),:$(strip $(EXTERNAL_PORT)),)/
 
 # tester image run options
 TESTER_RUN_OPTIONS = \
