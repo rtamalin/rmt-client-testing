@@ -1,4 +1,7 @@
-include $(REPO_BASE_DIR)/.env
+# env settings file
+ENV_FILE ?= $(REPO_BASE_DIR)/.env
+
+include $(ENV_FILE)
 
 # tester container image
 TESTER_IMAGE ?= rmt-client-tester
@@ -8,9 +11,6 @@ NUM_CLIENTS ?= 1000
 
 # client hwinfo data store
 CLIENT_DATA_STORE ?= $(REPO_BASE_DIR)/_ClientDataStore-$(NUM_CLIENTS)
-
-# env settings file
-ENV_FILE ?= $(REPO_BASE_DIR)/.env
 
 # instance data
 
@@ -26,16 +26,19 @@ PRODUCT_SPEC = $(PRODUCT)/$(VERSION)/$(ARCH)
 # RMT specification
 RMT_HOST ?= localhost
 
+# SCC_HOST_URI derived from RMT settings
+SCC_HOST_URI ?= http://$(strip $(RMT_HOST))$(if $(EXTERNAL_PORT),:$(strip $(EXTERNAL_PORT)),)/
+
 # tester image run options
 TESTER_RUN_OPTIONS = \
 	--rm \
 	--network=host \
 	--cap-add=sys_rawio \
 	--device /dev/mem:/dev/mem \
-	$(if $(RMT_IP),--add-host=$(RMT_HOST):$(RMT_IP),) \
+	$(if $(RMT_IP),--add-host=$(strip $(RMT_HOST)):$(strip $(RMT_IP)),) \
 	-v $(REPO_BASE_DIR):/app/tester \
-	$(if $(RMT_CERT),-v $(RMT_CERT):/app/rmt-ca.crt,) \
-	$(if $(INST_DATA),-v $(INST_DATA):/app/instdata.xml,) \
+	$(if $(RMT_CERT),-v $(strip $(RMT_CERT)):/app/rmt-ca.crt,) \
+	$(if $(INST_DATA),-v $(strip $(INST_DATA)):/app/instdata.xml,) \
 	-v $(CLIENT_DATA_STORE):/app/ClientDataStore
 
 # RMT setup actions
@@ -90,7 +93,6 @@ generate-hwinfo: build
 .PHONY: client-deregister client-register client-update client-tester
 
 client-register client-update client-deregister: env-exists generate-hwinfo docker-build
-	. $(ENV_FILE); \
 	$(CNTR_MGR) run \
 	  $(TESTER_RUN_OPTIONS) \
 		--entrypoint /app/bin/rmt-hwinfo-clientctl \
@@ -102,9 +104,9 @@ client-register client-update client-deregister: env-exists generate-hwinfo dock
 				--arch $(ARCH) \
 				$(if $(RMT_CERT),--api-cert /app/rmt-ca.crt,) \
 				$(if $(INST_DATA),--instdata /app/instdata.xml,) \
+				$(if $(REG_CODE),--regcode $(REG_CODE),) \
 				--datastore /app/ClientDataStore \
-				--scc-host http://$${RMT_HOST}$${EXTERNAL_PORT:+:$${EXTERNAL_PORT}}/ \
-				--regcode $${REG_CODE}
+				--scc-host $(SCC_HOST_URI)
 	[ "$(RMT_ENV)" != "docker" ] || $(HELPER_DIR)/rmt-size-of-system-information
 	[ "$(RMT_ENV)" != "docker" ] || $(HELPER_DIR)/rmt-systems-table-size
 	  
