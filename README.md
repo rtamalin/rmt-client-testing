@@ -1,8 +1,9 @@
 # A simulated client testing framework for SUSE/rmt
 
-This repo is expected to be used in conjunction with the
-[SUSE/rmt](github.com/SUSE/rmt) docker-compose based development
+This repo is expected to be used in conjunction with either:
+* a [SUSE/rmt](github.com/SUSE/rmt) docker-compose based development
 environment.
+* a deployed RMT instance that is SSH accessible
 
 ## Need the .env from a SUSE/rmt repo
 
@@ -14,12 +15,59 @@ specifies the registration code to use when registering clients.
 
 # Getting Started
 
-Ensure that you have setup an RMT development environment using the
-[SUSE/rmt](github.com/SUSE/rmt) and that you have created an appropriate
-.env file as outlined above.
+The first requirement is to ensure that an appropriate `.env` has been
+generated and is available in the top-level directory of the cloned repo.
+
+Next the RMT should be setup appropriately to mirror the appropriate
+product, defaulting to SLES/15.7/x86_64, which will be used by the
+simulated client registrations.
+
+Simulating client registration requires an appropriate set of simulated
+client hardware info.
+
+## Generating the appropriate .env file
+
+The following helper scripts are available in the bin directory to
+assist with generating a viable `.env` file:
+
+* `bin/setup-docker-env`
+  - Generates a `.env` file targetting a local docker compose based RMT
+    dev env deployment if called with the path to the deployment's
+    `.env` file.
+
+* `bin/setup-pcrmt-env`
+  - Generates a `.env` file targetting the specified, SSH accessible,
+    RMT instance, when called with the appropriate `<user>@<host>` values.
+  - NOTE: SSH access must already have been configured for the current
+    user.
+
+## Ensure the RMT is setup appropriately
 
 You can run `make rmt-setup` to ensure that the RMT is setup to support
 registering clients with your configured registration code.
+
+Note that this is only required if the RMT hasn't already been setup
+appropriately, and can take a long time if the RMT hasn't been setup
+yet or hasn't mirrored updates recently.
+
+## Generate simulated client hardware info
+
+You can run `make generate-hwinfo` to generate the simulated client
+hardware info using the `rmt-hwinfo-generator` tool. By default this
+will generate info for 1000 simulated clients, resulting in the creation
+of a `_ClientDataStore-1000` hierarchy hosting the simulated client
+hardware info.
+
+To generate simulated client hardware info for a different number client
+systems, an override value can be specified for the `NUM_CLIENTS` variable
+when running the make commane, e.g. `make NUM_CLIENTS=100 client-register`,
+which will generate a `_ClientDataStore-100` hierarchy.
+
+### Hardware Info Stats Details
+
+When a client datastore hierarchy is generated a `HwInfoStats.json` file
+will be created in the top-level directory that provides details about
+the set of simulated clients.
 
 ## Simulating client registrations
 
@@ -30,31 +78,37 @@ to 1000.
 You can override the number of clients by specifying the desired value
 on the make command line, e.g. `make NUM_CLIENTS=100 client-register`.
 
-If the required hardware info to simulate the specified number of
-clients doesn't exist, it will be automatically generated using the
-`rmt-hwinfo-generator` tool. This data can also be manually generated
-using the `make NUM_CLIENTS generated-hwinfo`. The `HwInfoStats.json`
-file in the top-level directory of the generated client datastore
-provides details about the generated set of simulated clients.
+If the simulated hardware info to support the registering the specified
+number of clients doesn't exist yet, it will be automatically generated
+using the `rmt-hwinfo-generator` tool via a dependency on the associated
+`generate-hwinfo` target.
 
 ## Simulating client keepalive heartbeat updates
 
+Note that it is only possible to simulate client keepalive heartbeat
+updates if the clients have previously been registered appropriately
+using `make client-register`.
+
 You can simulate clients sending keepalive heartbeat updates using 
 the `client-update` Makefile target, again with the number of clients
-being controlled via the `NUM_CLIENTS` Makefile variable.
+being controlled via the `NUM_CLIENTS` Makefile variable, which
+defaults to 1000.
 
-To simulate triggering keepalive heartbeat updates for 100 clients,
-you can run `make NUM_CLIENTS=100 client-update`. You will need to
-have registered those simulated clients first though.
+You can override the number of clients by specifying the desired value
+on the make command line, e.g. `make NUM_CLIENTS=100 client-update`.
 
-## Simulating client deregistration.
+## Simulating client deregistration
+
+Note that it is only possible to simulate client deregistration if
+the clients have previously been registered appropriately using
+`make client-register`.
 
 You can simulate clients deregistering using the `client-deregister`
 Makefile target, again with the number of clients being controlled
-via the `NUM_CLIENTS` Makefile variable.
+via the `NUM_CLIENTS` Makefile variable, which defaults to 1000.
 
-To deregister 100 simulated clients that were previously registered
-you can run `make NUM_CLIENTS-100 client-deregister`.
+You can override the number of clients by specifying the desired value
+on the make command line, e.g. `make NUM_CLIENTS=100 client-deregister`.
 
 # Tools available in this repo
 

@@ -31,12 +31,13 @@ dbName="${2:-rmt}"
 
 exec \
     ${DEBUG:+echo} \
-    ${dbQuery} "
+    ${dbQuery} << _EOF_
 SELECT 
     TABLE_NAME AS \`Table\`,
     ROUND(((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024), 3) AS \`Size in MiB\`
 FROM
     information_schema.TABLES
 WHERE
-    TABLE_SCHEMA = '${dbName}' AND TABLE_NAME = '${dbTable}';"
+    TABLE_SCHEMA = '${dbName}' AND TABLE_NAME = '${dbTable}';
+_EOF_
 # vim:shiftwidth=4:tabstop=4:expandtab

@@ -9,15 +9,15 @@ fi
 cmdName=$(basename ${BASH_SOURCE[0]})
 binDir=$(readlink -e $(dirname ${BASH_SOURCE[0]}))
 repoDir=$(dirname ${binDir})
-rmtEnv=${repoDir}/.env
+envFile=${repoDir}/.env
 rmtCntr=${RMT_CNTR:-rmt-rmt-1}
 
-if [[ ! -r ${rmtEnv} ]]; then
+if [[ ! -r ${envFile} ]]; then
     echo "Ensure env is setup"
     exit 1
 fi
 
-. ${rmtEnv}
+. ${envFile}
 
 if [[ -n "${RMT_CNTR:-}" ]]; then
     # Use docker if a container name is set

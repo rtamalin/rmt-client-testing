@@ -16,10 +16,11 @@ fi
 
 exec \
     ${DEBUG:+echo} \
-    ${dbQuery} "
+    ${dbQuery} << _EOF_
 SELECT
     COUNT(system_information) AS \`# Systems\`,
     ROUND((SUM(LENGTH(system_information))/1024)/1024, 3) AS \`Total MiB\`
 FROM
-    systems;"
+    systems;
+_EOF_
 # vim:shiftwidth=4:tabstop=4:expandtab

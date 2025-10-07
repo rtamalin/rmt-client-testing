@@ -8,14 +8,14 @@ fi
 cmdName=$(basename ${BASH_SOURCE[0]})
 binDir=$(readlink -e $(dirname ${BASH_SOURCE[0]}))
 repoDir=$(dirname ${binDir})
-rmtEnv=${repoDir}/.env
+envFile=${repoDir}/.env
 
-if [[ ! -r ${rmtEnv} ]]; then
+if [[ ! -r ${envFile} ]]; then
     echo "Ensure env is setup"
     exit 1
 fi
 
-. ${rmtEnv}
+. ${envFile}
 
 if [[ -n "${RMT_CNTR:-}" ]]; then
     # Use docker if a container name is set
@@ -32,7 +32,16 @@ case "${runner}" in
 (docker)
     runnerArgs+=(
         exec
-        -ti
+        -i
+    )
+
+    if [[ -t 0 ]]; then
+        runnerArgs+=(
+            -t
+        )
+    fi
+
+    runnerArgs+=(
         ${RMT_CNTR}
     )
     ;;
@@ -61,6 +70,10 @@ dbCmd=(
     -h "${MYSQL_HOST}"
     -D "${MYSQL_DATABASE}"
 )
+
+if [[ ! -t 0 ]]; then
+  dbCmd+=( -t )
+fi
 
 if (( $# > 0 )); then
     # handle simple query vs flags being passed in

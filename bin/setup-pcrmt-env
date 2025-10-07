@@ -9,15 +9,15 @@ fi
 cmdName=$(basename ${BASH_SOURCE[0]})
 binDir=$(readlink -e $(dirname ${BASH_SOURCE[0]}))
 repoDir=$(dirname ${binDir})
-rmtEnv=${repoDir}/.env
+envFile=${repoDir}/.env
 
 if (( $# < 1 )); then
     echo "Usage: ${cmdName} [<user>@]<pcrmt>"
     exit 1
 fi
 
-if [[ -s "${rmtEnv}" ]]; then
-    echo "ERROR: An environment file, ${rmtEnv}, already exists."
+if [[ -s "${envFile}" ]]; then
+    echo "ERROR: An environment file, ${envFile}, already exists."
     exit 1
 fi
 
@@ -54,6 +54,9 @@ f\"# RMT Tester Environment Settings\n\" \
 \"#\n\" \
 \"# NOTE: Included by both shell and Makefile, so stick to var=value assignments\n\" \
 \"\n\" \
+\"# RMT Environment - one of [docker, remote, pubcloud]\n\" \
+\"RMT_ENV=pubcloud\n\" \
+\"\n\" \
 \"# RMT Connectivity Settings\n\" \
 \"#RMT_CNTR=rmt-rmt-1\n\" \
 \"RMT_CERT=${repoDir}/${pcrmtCert}\n\" \
@@ -63,17 +66,19 @@ f\"# RMT Tester Environment Settings\n\" \
 \"EXTERNAL_PORT=${EXTERNAL_PORT:- #Configure an external port if needed}\n\" \
 \"\n\" \
 \"# MariaDB (mysql) Settings\n\" \
-\"MYSQL_DATABASE={sq}{rmt_db}{sq}\n\" \
-\"MYSQL_HOST={sq}{rmt_host}{sq}\n\" \
-\"MYSQL_PASSWORD={sq}{rmt_passwd}{sq}\n\" \
-\"MYSQL_USER={sq}{rmt_user}{sq}\n\" \
+f\"MYSQL_DATABASE={sq}{rmt_db}{sq}\n\" \
+f\"MYSQL_HOST={sq}{rmt_host}{sq}\n\" \
+f\"MYSQL_PASSWORD={sq}{rmt_passwd}{sq}\n\" \
+f\"MYSQL_USER={sq}{rmt_user}{sq}\n\" \
 \"\n\" \
 \"# Product Registration Settings\n\" \
 \"PRODUCT=SLES\n\" \
 \"VERSION=15.7\n\" \
 \"ARCH=x86_64\n\" \
-\"REG_CODE=${regCode:- #Not needed for PubCloud RMT}\n\"); \
-'" > ${rmtEnv}
+\"REG_CODE=${regCode:- #Not needed for PubCloud RMT}\n\" \
+\"INST_DATA=instdata.xml #Needed for PubCloud RMT\n\" \
+); \
+'" > ${envFile}
 
 exit 0
 

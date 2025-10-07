@@ -1,0 +1,74 @@
+#!/bin/bash
+
+set -eu
+
+if [[ -n "${TRACE:+true}" ]]; then
+    set -v -x
+fi
+
+cmdName=$(basename ${BASH_SOURCE[0]})
+binDir=$(readlink -e $(dirname ${BASH_SOURCE[0]}))
+repoDir=$(dirname ${binDir})
+rmtHost=${RMT_HOST:-localhost}
+envFile=${repoDir}/.env
+
+if (( $# < 1 )); then
+    echo "Usage: ${cmdName} <path_to_rmt_dot_env> [<reg_code>]"
+    exit 1
+fi
+
+if [[ -s "${envFile}" ]]; then
+    echo "ERROR: An environment file, ${envFile}, already exists."
+    exit 1
+fi
+
+rmtEnv="${1}"
+if [[ ! -s "${rmtEnv}" ]]; then
+    echo "ERROR: Specified RMT .env file '${rmtEnv}' is empty or doesn't exist"
+    exit 1
+fi
+
+# regCode is the optional second argument
+regCode="${2:-${REG_CODE:-}}"
+
+. ${rmtEnv}
+
+# if a REG_CODE was specified in the environment, use it
+if [[ -n "${REG_CODE:-}" ]]; then
+    regCode="${REG_CODE}"
+fi
+
+echo "[Generating .env file]"
+cat > ${envFile} << _EOF_
+# RMT Tester Environment Settings
+#
+# NOTE: Included by both shell and Makefile, so stick to var=value assignments
+
+# RMT Environment - one of [docker, remote, pubcloud]
+RMT_ENV=docker
+
+# RMT Connectivity Settings
+RMT_CNTR=rmt-rmt-1 # Should be name of locally running RMT container
+#RMT_CERT= #Specify cert to be used with the API
+RMT_HOST=${rmtHost}
+#RMT_IP= # Potentially not needed for docker dev-env RMT
+#RMT_USER= #Not needed for docker dev-env RMT
+EXTERNAL_PORT=${EXTERNAL_PORT:- #Configure an external port if needed}
+
+# MariaDB (mysql) Settings
+MYSQL_DATABASE="${MYSQL_DATABASE}"
+MYSQL_HOST="${MYSQL_HOST}"
+MYSQL_PASSWORD="${MYSQL_PASSWORD}"
+MYSQL_USER="${MYSQL_USER}"
+
+# Product Registration Settings
+PRODUCT=SLES
+VERSION=15.7
+ARCH=x86_64
+REG_CODE=${regCode:- #Needed for docker dev-env RMT}
+#INST_DATA= #Not needed for docker dev-env RMT
+_EOF_
+
+exit 0
+
+# vim:shiftwidth=4:tabstop=4:expandtab

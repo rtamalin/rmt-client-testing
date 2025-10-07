@@ -4,17 +4,19 @@ import (
 	"crypto/x509"
 	"flag"
 	"log"
+	"math"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/rtamalin/rmt-client-testing/internal/clientstore"
-	"github.com/rtamalin/rmt-client-testing/internal/flagtypes"
 )
 
 type CliOpts struct {
 	Action       CliAction
-	NumClients   flagtypes.Uint32
+	NumClients   int64
+	NumJobs      int64
 	DataStore    string
 	Product      string
 	Version      string
@@ -36,6 +38,7 @@ type CliOpts struct {
 var cliOpt_defaults = CliOpts{
 	Action:     ACTION_REGISTER,
 	NumClients: 10,
+	NumJobs:    10,
 	DataStore:  "ClientDataStore",
 	Product:    "SLES",
 	Version:    "15.7",
@@ -58,6 +61,22 @@ func customTypeEnvOverride(opt flag.Value, varName, envName string) {
 				err.Error(),
 			)
 		}
+	}
+}
+
+func int64EnvOverride(opt *int64, varName, envName string) {
+	if value := os.Getenv(envName); value != "" {
+		val, err := strconv.ParseInt(value, 10, 64)
+		if err != nil {
+			log.Fatalf(
+				"Failed to set %s from %s=%q: %s",
+				varName,
+				envName,
+				value,
+				err.Error(),
+			)
+		}
+		*opt = val
 	}
 }
 
@@ -98,14 +117,29 @@ func parseCliArgs(opts *CliOpts) {
 			"Action",
 			"ACTION",
 		},
+	}
+	for _, o := range customTypeEnvOverrides {
+		customTypeEnvOverride(o.opt, o.varName, o.envName)
+	}
+
+	int64EnvOverrides := []struct {
+		opt     *int64
+		varName string
+		envName string
+	}{
 		{
 			&opts.NumClients,
 			"NumClients",
 			"NUM_CLIENTS",
 		},
+		{
+			&opts.NumJobs,
+			"NumJobs",
+			"NUM_JOBS",
+		},
 	}
-	for _, o := range customTypeEnvOverrides {
-		customTypeEnvOverride(o.opt, o.varName, o.envName)
+	for _, o := range int64EnvOverrides {
+		int64EnvOverride(o.opt, o.varName, o.envName)
 	}
 
 	stringEnvOverrides := []struct {
@@ -179,7 +213,8 @@ func parseCliArgs(opts *CliOpts) {
 	}
 
 	flag.Var(&opts.Action, "action", "Specifies the `ACTION` to perform for NUM_CLIENTS in DATASTORE.")
-	flag.Var(&opts.NumClients, "clients", "The number of `NUM_CLIENTS` in DATASTORE to act upon.")
+	flag.Int64Var(&opts.NumClients, "clients", opts.NumClients, "`NUM_CLIENTS` specifies the number client entries in DATASTORE to act upon.")
+	flag.Int64Var(&opts.NumJobs, "jobs", opts.NumJobs, "`NUM_JOBS` to run in parallel.")
 	flag.StringVar(&opts.DataStore, "datastore", opts.DataStore, "The `DATASTORE` holding the client system information JSON blobs.")
 	flag.StringVar(&opts.Product, "product", opts.Product, "Register the client with this product `IDENTIFIER`.")
 	flag.StringVar(&opts.Version, "version", opts.Version, "Register the client with this product `VERSION`.")
@@ -193,10 +228,32 @@ func parseCliArgs(opts *CliOpts) {
 
 	flag.Parse()
 
+	//
 	// sanity checks
-	if opts.Action == ACTION_REGISTER && opts.RegCode == "" {
-		log.Println("WARNING: No REGCODE specified for register action.")
+	//
+
+	// fail if the number of clients is invalid
+	if (opts.NumClients >= math.MaxUint32) || (opts.NumClients < 0) {
+		log.Fatal(
+			"ERROR: The number of clients must be a positive value between 0 and MaxUint32\n",
+		)
 	}
+
+	// fail if the number of parallel jobs is invalid
+	if (opts.NumJobs >= math.MaxUint32) || (opts.NumJobs < 0) {
+		log.Fatal(
+			"ERROR: The number of parallel must be a positive value between 0 and MaxUint32\n",
+		)
+	}
+
+	// warn if trying to register without specifying REGCODE or INST_DATA
+	if opts.Action == ACTION_REGISTER &&
+		((opts.RegCode == "") || (opts.InstDataPath == "")) {
+		log.Println("WARNING: No REGCODE or INST_DATA specified for register action.")
+	}
+
+	// configure tracing
+	configTracing(opts.Trace)
 
 	// load the ApiCert if specified
 	if opts.ApiCert != "" {
@@ -211,9 +268,6 @@ func parseCliArgs(opts *CliOpts) {
 		}
 	}
 
-	// setup the clientStore
-	opts.clientStore = clientstore.New(opts.DataStore)
-
 	// load the instance data is specified
 	if opts.InstDataPath != "" {
 		var err error
@@ -227,5 +281,6 @@ func parseCliArgs(opts *CliOpts) {
 		}
 	}
 
-	configTracing(opts.Trace)
+	// setup the clientStore
+	opts.clientStore = clientstore.New(opts.DataStore)
 }

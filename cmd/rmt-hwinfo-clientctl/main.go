@@ -2,10 +2,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/rtamalin/rmt-client-testing/internal/clientstore"
-	"github.com/rtamalin/rmt-client-testing/internal/flagtypes"
+	"github.com/rtamalin/rmt-client-testing/internal/workqueue"
 )
 
 func performAction(id uint32, opts *CliOpts) (err error) {
@@ -25,11 +26,26 @@ func main() {
 
 	parseCliArgs(&cliOpts)
 
-	for i := flagtypes.Uint32(0); i < cliOpts.NumClients; i++ {
-		err := performAction(uint32(i), &cliOpts)
+	wq := workqueue.NewWorkQueue("testq", cliOpts.NumJobs)
 
-		if err != nil {
-			log.Fatalf("Error: %s\n", err.Error())
-		}
+	wq.Start()
+	for i := int64(0); i < cliOpts.NumClients; i++ {
+		job := wq.NewJob(i, func() error {
+			return performAction(uint32(i), &cliOpts)
+		})
+		wq.Add(job)
 	}
+
+	wq.WaitForCompletion()
+
+	if len(wq.Errors) > 0 {
+		log.Printf("ERROR: %v action failures occurred:\n", len(wq.Errors))
+		for _, actErr := range wq.Errors {
+			log.Printf("  %s\n", actErr.Error())
+		}
+		log.Fatal("ERROR: failed due to above errors.")
+	}
+
+	fmt.Println(wq.Stats.JobStats().Summary("Client"))
+	fmt.Println(wq.Stats.PoolStats().Summary("Parallel Job"))
 }

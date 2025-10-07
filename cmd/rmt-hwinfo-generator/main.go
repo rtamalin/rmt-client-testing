@@ -5,13 +5,13 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/rtamalin/rmt-client-testing/internal/client"
 	"github.com/rtamalin/rmt-client-testing/internal/clientstore"
-	"github.com/rtamalin/rmt-client-testing/internal/flagtypes"
 	"github.com/rtamalin/rmt-client-testing/internal/profile"
 )
 
@@ -20,7 +20,7 @@ const (
 )
 
 type Options struct {
-	NumClients flagtypes.Uint32
+	NumClients int64
 	DataStore  string
 }
 
@@ -153,8 +153,14 @@ func (h *HwInfoStats) Write(dsDir string) (err error) {
 func main() {
 	options = option_defaults
 	flag.StringVar(&options.DataStore, "datastore", option_defaults.DataStore, "Location of `datastore` to store simulated clients")
-	flag.Var(&options.NumClients, "clients", "The number of `clients` to simulate")
+	flag.Int64Var(&options.NumClients, "clients", option_defaults.NumClients, "The number of `clients` to simulate")
 	flag.Parse()
+
+	if (options.NumClients >= math.MaxUint32) || (options.NumClients < 0) {
+		log.Fatal(
+			"ERROR: The number of clients must be a positive value between 0 and MaxUint32\n",
+		)
+	}
 
 	log.Printf("Initialising %q as datastore\n", options.DataStore)
 	dataStore := clientstore.New(options.DataStore)
@@ -162,7 +168,7 @@ func main() {
 	log.Printf("Simulating %v clients\n", options.NumClients)
 
 	hwInfoStats := NewHwInfoStats()
-	for i := flagtypes.Uint32(0); i < options.NumClients; i++ {
+	for i := int64(0); i < options.NumClients; i++ {
 		c := client.NewClient(client.ClientId(i))
 		sysInfo := c.SystemInfo()
 

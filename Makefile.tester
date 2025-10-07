@@ -32,25 +32,48 @@ TESTER_RUN_OPTIONS = \
 	--network=host \
 	--cap-add=sys_rawio \
 	--device /dev/mem:/dev/mem \
+	$(if $(RMT_IP),--add-host=$(RMT_HOST):$(RMT_IP),) \
 	-v $(REPO_BASE_DIR):/app/tester \
+	$(if $(RMT_CERT),-v $(RMT_CERT):/app/rmt-ca.crt,) \
+	$(if $(INST_DATA),-v $(INST_DATA):/app/instdata.xml,) \
 	-v $(CLIENT_DATA_STORE):/app/ClientDataStore
 
 # RMT setup actions
 .PHONY: rmt-setup
 
 rmt-setup:
+	@if [ "$(RMT_ENV)" != "docker" ]; then \
+	  echo "ERROR: '$@' target should only be used with a docker dev-env RMT setup"; \
+		exit 1; \
+	fi
 	bin/rmt-cli sync
 	bin/rmt-cli product enable $(PRODUCT_SPEC)
 	bin/rmt-cli mirror all
 
-# testing actions
-.PHONY: remove-clients client-deregister client-register client-update client-tester env-exists generate-hwinfo
+# testing environment check actions
+.PHONY: env-exists cert-exists
 
 env-exists:
 	@if [ ! -e $(ENV_FILE) ]; then \
-	  echo "Please create a .env file in the repo; copy it from your SUSE/rmt repo"; \
+	  echo "ERROR: Please create a .env file in the repo top level directory"; \
+	  echo "       Run the appropriate setup script from the $(REPO_BASE_DIR)/bin directory"; \
 	  exit 1; \
 	fi
+
+cert-exists:
+	@if [ -n "$(RMT_CERT)" ] && [ ! -s $(RMT_CERT) ]; then \
+	  echo "ERROR: Specified '$(RMT_CERT)' doesn't exist or is empty."; \
+	  exit 1; \
+	fi
+
+instdata-exists:
+	@if [ -n "$(INST_DATA)" ] && [ ! -s $(INST_DATA) ]; then \
+	  echo "ERROR: Specified '$(INST_DATA)' doesn't exist or is empty."; \
+	  exit 1; \
+	fi
+
+# data store actions
+.PHONY: generate-hwinfo
 
 generate-hwinfo: build
 	if [ ! -d $(CLIENT_DATA_STORE) ]; then \
@@ -63,6 +86,9 @@ generate-hwinfo: build
 	  exit 1; \
 	fi
 
+# testing actions
+.PHONY: client-deregister client-register client-update client-tester
+
 client-register client-update client-deregister: env-exists generate-hwinfo docker-build
 	. $(ENV_FILE); \
 	$(CNTR_MGR) run \
@@ -74,11 +100,13 @@ client-register client-update client-deregister: env-exists generate-hwinfo dock
 				--product $(PRODUCT) \
 				--version $(VERSION) \
 				--arch $(ARCH) \
+				$(if $(RMT_CERT),--api-cert /app/rmt-ca.crt,) \
+				$(if $(INST_DATA),--instdata /app/instdata.xml,) \
 				--datastore /app/ClientDataStore \
 				--scc-host http://$${RMT_HOST}$${EXTERNAL_PORT:+:$${EXTERNAL_PORT}}/ \
 				--regcode $${REG_CODE}
-	$(HELPER_DIR)/rmt-size-of-system-information
-	$(HELPER_DIR)/rmt-systems-table-size
+	[ "$(RMT_ENV)" != "docker" ] || $(HELPER_DIR)/rmt-size-of-system-information
+	[ "$(RMT_ENV)" != "docker" ] || $(HELPER_DIR)/rmt-systems-table-size
 	  
 client-tester:
 	$(CNTR_MGR) run \
@@ -86,8 +114,14 @@ client-tester:
 	  $(TESTER_RUN_OPTIONS) \
 	  $(TESTER_IMAGE)
 
-# TODO: implement deregister in rmt-hwinfo-clientctl
+# cleanup actions
+.PHONY: remove-clients
+
 remove-clients:
+	@if [ "$(RMT_ENV)" != "docker" ]; then \
+	  echo "ERROR: '$@' target should only be used with a docker dev-env RMT setup"; \
+		exit 1; \
+	fi
 	for c in $$($(HELPER_DIR)/rmt-db-query --skip-column-names -s -e "SELECT login FROM systems;" | tr -d '\r'); \
 	do \
 	  echo "[Removing $${c}]"; \
@@ -96,9 +130,14 @@ remove-clients:
 	$(HELPER_DIR)/rmt-size-of-system-information
 	$(HELPER_DIR)/rmt-systems-table-size
 
+# DB size query actions
 .PHONY: size-of-system-information systems-table-size system_data_profiles-table-size
+
 size-of-system-information systems-table-size system_data_profiles-table-size:
-	$(HELPER_DIR)/rmt-$(@)
+	[ "$(RMT_ENV)" != "docker" ] || $(HELPER_DIR)/rmt-$(@)
 
 num-rmt-clients:
-	$(HELPER_DIR)/rmt-db-query 'SELECT COUNT(login) AS NumClients FROM systems;'
+	@if [ "$(RMT_ENV)" = "docker" ]; then \
+		echo 'SELECT COUNT(login) AS NumClients FROM systems;' | \
+	  $(HELPER_DIR)/rmt-db-query; \
+	fi
