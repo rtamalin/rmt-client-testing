@@ -56,7 +56,7 @@ func registerClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 		return
 	}
 
-	bold("Setup connection for client %q", hostname)
+	trace("Setup connection for client %q", hostname)
 	conn := connection.New(connectOpts, &sccCreds)
 
 	// Proxies do not implement /connect/subscriptions/info so we skip it
@@ -89,7 +89,7 @@ func registerClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	if cliOpts.RegCode != "" {
 		regMsg = "Registering client %q against %q using a registration code"
 	}
-	bold(regMsg, hostname, connectOpts.URL)
+	trace(regMsg, hostname, connectOpts.URL)
 	regId, err := registration.Register(conn, cliOpts.RegCode, hostname, sysInfo, extraData)
 	if err != nil {
 		err = fmt.Errorf(
@@ -101,7 +101,7 @@ func registerClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	}
 	trace("check %s/systems/%d", connectOpts.URL, regId)
 
-	bold("Activating %s/%s/%s for client %q", cliOpts.Product, cliOpts.Version, cliOpts.Arch, hostname)
+	trace("Activating %s/%s/%s for client %q", cliOpts.Product, cliOpts.Version, cliOpts.Arch, hostname)
 	_, root, err := registration.Activate(conn, cliOpts.Product, cliOpts.Version, cliOpts.Arch, cliOpts.RegCode)
 	if err != nil {
 		err = fmt.Errorf(
@@ -129,6 +129,8 @@ func registerClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 			err,
 		)
 	}
+
+	bold("Client %q registered and activated", hostname)
 
 	return
 }

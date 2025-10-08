@@ -65,10 +65,10 @@ func updateClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 		connectOpts.Certificate = cliOpts.cert
 	}
 
-	bold("Setup connection for client %q", hostname)
+	trace("Setup connection for client %q", hostname)
 	conn := connection.New(connectOpts, &sccCreds)
 
-	bold("Sending keepalive heartbeat for client %q", hostname)
+	trace("Sending keepalive heartbeat for client %q", hostname)
 	status, err := registration.Status(conn, hostname, sysInfo, extraData)
 	if err != nil {
 		err = fmt.Errorf(
@@ -102,7 +102,7 @@ func updateClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 		)
 	}
 
-	bold("Keepalive heartbeat succeeded for client %q", hostname)
+	bold("Client %q keepalive heartbeat updated", hostname)
 
 	return
 }

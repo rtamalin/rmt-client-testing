@@ -64,10 +64,10 @@ func deregisterClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	// we want to delete the existing registration anyway
 	defer regInfo.Delete(id, cliOpts.clientStore)
 
-	bold("Setup connection for client %q", hostname)
+	trace("Setup connection for client %q", hostname)
 	conn := connection.New(connectOpts, &sccCreds)
 
-	bold("Deregistering client %q", hostname)
+	trace("Deregistering client %q", hostname)
 	if err = registration.Deregister(conn); err != nil {
 		err = fmt.Errorf(
 			"deregisterClient failed to deregister a client: %w",
