@@ -14,19 +14,20 @@ import (
 )
 
 type CliOpts struct {
-	Action       CliAction
-	NumClients   int64
-	NumJobs      int64
-	DataStore    string
-	Product      string
-	Version      string
-	Arch         string
-	SccHost      string
-	ApiCert      string
-	PrefLang     string
-	RegCode      string
-	InstDataPath string
-	Trace        bool
+	Action         CliAction
+	NumClients     int64
+	NumJobs        int64
+	DataStore      string
+	Product        string
+	Version        string
+	Arch           string
+	SccHost        string
+	ApiCert        string
+	PrefLang       string
+	RegCode        string
+	InstDataPath   string
+	Trace          bool
+	NoDataProfiles bool
 
 	// derived values
 	appName     string
@@ -207,6 +208,11 @@ func parseCliArgs(opts *CliOpts) {
 			"Trace",
 			"TRACE_UPDATES",
 		},
+		{
+			&opts.NoDataProfiles,
+			"NoDataProfiles",
+			"NO_DATA_PROFILES",
+		},
 	}
 	for _, o := range boolEnvOverrides {
 		boolEnvOverride(o.opt, o.varName, o.envName)
@@ -225,6 +231,7 @@ func parseCliArgs(opts *CliOpts) {
 	flag.StringVar(&opts.RegCode, "regcode", opts.RegCode, "The `REGCODE` to use when registering with specified SCC_HOST.")
 	flag.StringVar(&opts.InstDataPath, "instdata", opts.InstDataPath, "The `INST_DATA` to use when registering with specified SCC_HOST.")
 	flag.BoolVar(&opts.Trace, "trace", opts.Trace, "Enable tracing of operations.")
+	flag.BoolVar(&opts.NoDataProfiles, "no-data-profiles", opts.Trace, "Disable inclusion of data profiles.")
 
 	flag.Parse()
 

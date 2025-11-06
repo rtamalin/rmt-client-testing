@@ -4,9 +4,13 @@ import (
 	"github.com/SUSE/connect-ng/pkg/registration"
 )
 
-func extraDataWithDataProfiles(sysInfo SysInfo, cliOpts *CliOpts) registration.ExtraData {
+func prepareExtraData(sysInfo SysInfo, cliOpts *CliOpts) registration.ExtraData {
 	extraData := registration.ExtraData{
 		"instance_data": cliOpts.instData,
+	}
+
+	if cliOpts.NoDataProfiles {
+		return extraData
 	}
 
 	// add data profiles to extraData.dataProfiles, removing them from sysInfo

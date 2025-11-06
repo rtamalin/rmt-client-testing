@@ -117,23 +117,28 @@ func (s *StatBlock) UnitSuffix() string {
 	return s.unitSfx
 }
 
-func formatInt64(value int64, prefix, valueFmt, name, unit string) string {
-	return fmt.Sprintf("%s%-16s "+valueFmt+" %s", prefix, name+":", value, unit)
+func formatInt64(value int64, indent, valueFmt, name, unit string) string {
+	return fmt.Sprintf("%s%-16s "+valueFmt+" %s", indent, name+":", value, unit)
 }
 
-func formatFloat64(value float64, prefix, valueFmt, name, unit string) string {
-	return fmt.Sprintf("%s%-16s "+valueFmt+" %s", prefix, name+":", value, unit)
+func formatFloat64(value float64, indent, valueFmt, name, unit string) string {
+	return fmt.Sprintf("%s%-16s "+valueFmt+" %s", indent, name+":", value, unit)
+}
+
+func formatBool(value bool, indent, valueFmt, name string) string {
+	return fmt.Sprintf("%s%-16s "+valueFmt, indent, name+":", value)
 }
 
 type SummaryOpts map[string]any
 
 const (
-	OPT_HEADER      = "header"
-	OPT_FOOTER      = "footer"
-	OPT_NAME        = "name"
-	OPT_RATE        = "rate"
-	OPT_MIN_MAX     = "min_max"
-	OPT_EXTRA_STATS = "extra_stats"
+	OPT_HEADER        = "header"
+	OPT_FOOTER        = "footer"
+	OPT_NAME          = "name"
+	OPT_RATE          = "rate"
+	OPT_MIN_MAX       = "min_max"
+	OPT_EXTRA_STATS   = "extra_stats"
+	OPT_DATA_PROFILES = "data_profiles"
 )
 
 func DefaultSummaryOpts() SummaryOpts {
@@ -146,6 +151,7 @@ func DefaultSummaryOpts() SummaryOpts {
 const (
 	INT64_FMT = "%13d"
 	FLT64_FMT = "%13.6f"
+	BOOL_FMT  = "%13t"
 )
 
 func (s *StatBlock) Summary(opts SummaryOpts) string {
@@ -199,6 +205,13 @@ func (s *StatBlock) Summary(opts SummaryOpts) string {
 			formatFloat64(s.Variance(), "  ", FLT64_FMT, "Variance", s.unitSfx),
 			formatFloat64(s.StandardDeviation(), "  ", FLT64_FMT, "StdDev", s.unitSfx),
 			formatFloat64(s.RootMeanSquare(), "  ", FLT64_FMT, "RMS", s.unitSfx),
+		)
+	}
+
+	// if requested, indicate if data profiles were not included
+	if data_profiles, found := opts[OPT_DATA_PROFILES]; found {
+		result = append(result,
+			formatBool(data_profiles.(bool), "  ", BOOL_FMT, "Data Profiles"),
 		)
 	}
 

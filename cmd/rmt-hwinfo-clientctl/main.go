@@ -89,10 +89,11 @@ func main() {
 	parseCliArgs(&cliOpts)
 
 	clientStatOpts := workqueue.SummaryOpts{
-		workqueue.OPT_NAME:        "Client " + cliOpts.Action.String(),
-		workqueue.OPT_RATE:        true,
-		workqueue.OPT_MIN_MAX:     true,
-		workqueue.OPT_EXTRA_STATS: true,
+		workqueue.OPT_NAME:          "Client " + cliOpts.Action.String(),
+		workqueue.OPT_RATE:          true,
+		workqueue.OPT_MIN_MAX:       true,
+		workqueue.OPT_EXTRA_STATS:   true,
+		workqueue.OPT_DATA_PROFILES: !cliOpts.NoDataProfiles,
 	}
 
 	parallelStatOpts := workqueue.SummaryOpts{

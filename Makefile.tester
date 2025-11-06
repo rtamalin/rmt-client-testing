@@ -15,7 +15,11 @@ NUM_JOBS ?= 20
 # client hwinfo data store
 CLIENT_DATA_STORE ?= $(REPO_BASE_DIR)/_ClientDataStore-$(NUM_CLIENTS)
 
-# instance data
+# whether to include data profiles or not in payload, set to 'true'
+# to disable
+NO_DATA_PROFILES ?= false
+
+# instance data var INST_DATA optionally defined in env file
 
 # helper script dir
 HELPER_DIR ?= $(REPO_BASE_DIR)/bin
@@ -109,6 +113,7 @@ client-register client-update client-deregister: env-exists generate-hwinfo dock
 				$(if $(RMT_CERT),--api-cert /app/rmt-ca.crt,) \
 				$(if $(INST_DATA),--instdata /app/instdata.xml,) \
 				$(if $(REG_CODE),--regcode $(REG_CODE),) \
+				$(if $(filter true,$(NO_DATA_PROFILES)),--no-data-profiles,) \
 				--datastore /app/ClientDataStore \
 				--scc-host $(SCC_HOST_URI)
 	  
