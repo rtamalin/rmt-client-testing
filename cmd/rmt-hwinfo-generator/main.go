@@ -45,25 +45,25 @@ func NewProfileKeyStats(pInfo *profile.ProfileInfo) ProfileInfoStats {
 	// init to 0, will be incremented later
 	p.Count = 0
 
-	// determine the storage size for storing the profileData, which
+	// determine the storage size for storing the profile's data, which
 	// should be JSON encoded string...
-	switch v := pInfo.ProfileData.(type) {
+	switch v := pInfo.Data.(type) {
 	case []string:
 		p.Size = len(strings.Join(v, "\n"))
 	case string:
 		p.Size = len(v)
 	default:
-		log.Fatalf("ERROR: Unsupported profileData type %T for %v", v, v)
+		log.Fatalf("ERROR: Unsupported profile data type %T for %v", v, v)
 	}
 
 	infoMap := map[string]any{
-		"profileId":   pInfo.ProfileID,
-		"profileData": pInfo.ProfileData,
+		"digest": pInfo.Digest,
+		"data":   pInfo.Data,
 	}
 
 	withData, _ := json.Marshal(infoMap)
 
-	delete(infoMap, "profileData")
+	delete(infoMap, "data")
 	withoutData, _ := json.Marshal(infoMap)
 
 	p.JsonSize = len(withData) - len(withoutData)
@@ -95,11 +95,11 @@ func (h *HwInfoStats) Add(profileName string, pInfo *profile.ProfileInfo) {
 	if _, exists := h.ProfileStats[profileName]; !exists {
 		h.ProfileStats[profileName] = make(map[string]ProfileInfoStats)
 	}
-	if _, exists := h.ProfileStats[profileName][pInfo.ProfileID]; !exists {
-		h.ProfileStats[profileName][pInfo.ProfileID] = NewProfileKeyStats(pInfo)
+	if _, exists := h.ProfileStats[profileName][pInfo.Digest]; !exists {
+		h.ProfileStats[profileName][pInfo.Digest] = NewProfileKeyStats(pInfo)
 	}
 
-	h.ProfileStats[profileName][pInfo.ProfileID].Count++
+	h.ProfileStats[profileName][pInfo.Digest].Count++
 }
 
 func (h *HwInfoStats) Finalize() {

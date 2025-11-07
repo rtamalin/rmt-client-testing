@@ -140,9 +140,9 @@ remove-clients:
 	$(HELPER_DIR)/rmt-systems-table-size
 
 # DB size query actions
-.PHONY: size-of-system-information systems-table-size system_data_profiles-table-size
+.PHONY: size-of-system-information systems-table-size profiles-table-size
 
-size-of-system-information systems-table-size system_data_profiles-table-size:
+size-of-system-information systems-table-size profiles-table-size:
 	[ "$(RMT_ENV)" != "docker" ] || $(HELPER_DIR)/rmt-$(@)
 
 num-rmt-clients:

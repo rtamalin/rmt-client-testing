@@ -13,22 +13,22 @@ func prepareExtraData(sysInfo SysInfo, cliOpts *CliOpts) registration.ExtraData 
 		return extraData
 	}
 
-	// add data profiles to extraData.dataProfiles, removing them from sysInfo
-	dataProfiles := map[string]any{}
-	dpNames := []string{
+	// add system profiles to extraData.dataProfiles, removing them from sysInfo
+	systemProfiles := map[string]any{}
+	spNames := []string{
 		"pci_data",
-		"mod_data",
+		"mod_list",
 	}
-	for _, dpName := range dpNames {
-		// skip if dp_name entry not in sysInfo
-		if _, ok := sysInfo[dpName]; !ok {
+	for _, spName := range spNames {
+		// skip if spName entry not in sysInfo
+		if _, ok := sysInfo[spName]; !ok {
 			continue
 		}
 
-		dataProfiles[dpName] = sysInfo[dpName]
-		delete(sysInfo, dpName)
+		systemProfiles[spName] = sysInfo[spName]
+		delete(sysInfo, spName)
 	}
-	extraData["data_profiles"] = dataProfiles
+	extraData["system_profiles"] = systemProfiles
 
 	return extraData
 }

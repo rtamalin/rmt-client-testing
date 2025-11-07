@@ -152,7 +152,7 @@ func (c *Client) Hostname() string {
 }
 
 const (
-	MOD_DATA_PROFILE = "mod_data"
+	MOD_DATA_PROFILE = "mod_list"
 	PCI_DATA_PROFILE = "pci_data"
 )
 
