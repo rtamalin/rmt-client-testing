@@ -9,10 +9,6 @@ func prepareExtraData(sysInfo SysInfo, cliOpts *CliOpts) registration.ExtraData 
 		"instance_data": cliOpts.instData,
 	}
 
-	if cliOpts.NoDataProfiles {
-		return extraData
-	}
-
 	// add system profiles to extraData.dataProfiles, removing them from sysInfo
 	systemProfiles := map[string]any{}
 	spNames := []string{
@@ -28,7 +24,11 @@ func prepareExtraData(sysInfo SysInfo, cliOpts *CliOpts) registration.ExtraData 
 		systemProfiles[spName] = sysInfo[spName]
 		delete(sysInfo, spName)
 	}
-	extraData["system_profiles"] = systemProfiles
+
+	// don't include profiles if option was specified
+	if !cliOpts.NoDataProfiles {
+		extraData["system_profiles"] = systemProfiles
+	}
 
 	return extraData
 }
