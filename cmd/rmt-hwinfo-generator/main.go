@@ -57,8 +57,8 @@ func NewProfileKeyStats(pInfo *profile.ProfileInfo) ProfileInfoStats {
 	}
 
 	infoMap := map[string]any{
-		"digest": pInfo.Digest,
-		"data":   pInfo.Data,
+		"identifier": pInfo.Identifier,
+		"data":       pInfo.Data,
 	}
 
 	withData, _ := json.Marshal(infoMap)
@@ -95,11 +95,11 @@ func (h *HwInfoStats) Add(profileName string, pInfo *profile.ProfileInfo) {
 	if _, exists := h.ProfileStats[profileName]; !exists {
 		h.ProfileStats[profileName] = make(map[string]ProfileInfoStats)
 	}
-	if _, exists := h.ProfileStats[profileName][pInfo.Digest]; !exists {
-		h.ProfileStats[profileName][pInfo.Digest] = NewProfileKeyStats(pInfo)
+	if _, exists := h.ProfileStats[profileName][pInfo.Identifier]; !exists {
+		h.ProfileStats[profileName][pInfo.Identifier] = NewProfileKeyStats(pInfo)
 	}
 
-	h.ProfileStats[profileName][pInfo.Digest].Count++
+	h.ProfileStats[profileName][pInfo.Identifier].Count++
 }
 
 func (h *HwInfoStats) Finalize() {

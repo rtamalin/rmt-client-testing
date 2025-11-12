@@ -8,8 +8,8 @@ import (
 )
 
 type ProfileInfo struct {
-	Digest string `json:"digest"`
-	Data   any    `json:"data"`
+	Identifier string `json:"identifier"`
+	Data       any    `json:"data"`
 }
 
 func (pi *ProfileInfo) Init(data any) {
@@ -25,7 +25,7 @@ func (pi *ProfileInfo) Init(data any) {
 	hasher := sha256.New()
 	hasher.Write(piBytes)
 
-	pi.Digest = hex.EncodeToString(hasher.Sum(nil))
+	pi.Identifier = hex.EncodeToString(hasher.Sum(nil))
 	pi.Data = data
 
 }
