@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/SUSE/connect-ng/pkg/connection"
@@ -17,8 +16,9 @@ func deregisterClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	// load the saved system information
 	err = sysInfo.Load(id, cliOpts.clientStore)
 	if err != nil {
-		err = errors.New(
-			"deregisterClient failed to load sysInfo",
+		err = fmt.Errorf(
+			"deregisterClient clientid %d failed to load sysInfo",
+			id,
 		)
 		return
 	}
@@ -29,8 +29,9 @@ func deregisterClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	// fail early if no registration info found
 	if !RegInfoExists(id, cliOpts.clientStore) {
 		trace("client registration missing for %q", hostname)
-		err = errors.New(
-			"deregisterClient client not registered",
+		err = fmt.Errorf(
+			"deregisterClient client %q client not registered",
+			hostname,
 		)
 		return
 	}
@@ -39,7 +40,8 @@ func deregisterClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	err = regInfo.Load(id, cliOpts.clientStore)
 	if err != nil {
 		err = fmt.Errorf(
-			"deregisterClient failed to load regInfo: %w",
+			"deregisterClient client %q failed to load regInfo: %w",
+			hostname,
 			err,
 		)
 		return
@@ -70,12 +72,13 @@ func deregisterClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	trace("Deregistering client %q", hostname)
 	if err = registration.Deregister(conn); err != nil {
 		err = fmt.Errorf(
-			"deregisterClient failed to deregister a client: %w",
+			"deregisterClient client %q failed to deregister a client: %w",
+			hostname,
 			err,
 		)
 		return
 	}
-	bold("Client %q deregistered", hostname)
+	bold("Client %08d %q deregistered", id, hostname)
 
 	return
 }

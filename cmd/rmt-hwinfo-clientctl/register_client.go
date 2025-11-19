@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/SUSE/connect-ng/pkg/connection"
@@ -21,7 +20,8 @@ func registerClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	}
 	if err = sysInfo.Load(id, cliOpts.clientStore); err != nil {
 		err = fmt.Errorf(
-			"registerClient failed to load system information: %w",
+			"registerClient clientid %d failed to load system information: %w",
+			id,
 			err,
 		)
 		return
@@ -50,8 +50,9 @@ func registerClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	// fail if attempting to register a client that already exists
 	if RegInfoExists(id, cliOpts.clientStore) {
 		trace("client registration already exists for %q", hostname)
-		err = errors.New(
-			"registerClient client already registered",
+		err = fmt.Errorf(
+			"registerClient client %q already registered",
+			hostname,
 		)
 		return
 	}
@@ -65,7 +66,8 @@ func registerClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 		request, err := conn.BuildRequest("GET", reqPath, nil)
 		if err != nil {
 			return fmt.Errorf(
-				"registerClient failed to build %s request: %w",
+				"registerClient client %q failed to build %s request: %w",
+				hostname,
 				reqPath,
 				err,
 			)
@@ -76,7 +78,8 @@ func registerClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 		payload, err := conn.Do(request)
 		if err != nil {
 			return fmt.Errorf(
-				"registerClient failed to perform %s request: %w",
+				"registerClient client %q failed to perform %s request: %w",
+				hostname,
 				reqPath,
 				err,
 			)
@@ -93,7 +96,8 @@ func registerClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	regId, err := registration.Register(conn, cliOpts.RegCode, hostname, sysInfo, extraData)
 	if err != nil {
 		err = fmt.Errorf(
-			"registerClient failed to register with %q using reg code: %w",
+			"registerClient client %q failed to register with %q using reg code: %w",
+			hostname,
 			connectOpts.URL,
 			err,
 		)
@@ -105,7 +109,8 @@ func registerClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	_, root, err := registration.Activate(conn, cliOpts.Product, cliOpts.Version, cliOpts.Arch, cliOpts.RegCode)
 	if err != nil {
 		err = fmt.Errorf(
-			"registerClient failed to activate %s/%s/%s using reg code: %w",
+			"registerClient client %q failed to activate %s/%s/%s using reg code: %w",
+			hostname,
 			cliOpts.Product,
 			cliOpts.Version,
 			cliOpts.Arch,
@@ -125,12 +130,13 @@ func registerClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	err = regInfo.Save(id, cliOpts.clientStore)
 	if err != nil {
 		err = fmt.Errorf(
-			"registerClient failed to save registration info: %w",
+			"registerClient client %q failed to save registration info: %w",
+			hostname,
 			err,
 		)
 	}
 
-	bold("Client %q registered and activated", hostname)
+	bold("Client %08d %q registered and activated", id, hostname)
 
 	return
 }

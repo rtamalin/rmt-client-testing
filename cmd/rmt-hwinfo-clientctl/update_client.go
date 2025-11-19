@@ -18,7 +18,8 @@ func updateClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	err = sysInfo.Load(id, cliOpts.clientStore)
 	if err != nil {
 		err = fmt.Errorf(
-			"updateClient failed to load sysInfo: %w",
+			"updateClient clientid %d failed to load sysInfo: %w",
+			id,
 			err,
 		)
 		return
@@ -30,8 +31,9 @@ func updateClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	// fail early if no registration info found
 	if !RegInfoExists(id, cliOpts.clientStore) {
 		trace("client registration missing for %q", hostname)
-		err = errors.New(
-			"updateClient client not registered",
+		err = fmt.Errorf(
+			"updateClient client %q not registered",
+			hostname,
 		)
 		return
 	}
@@ -40,7 +42,8 @@ func updateClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	err = regInfo.Load(id, cliOpts.clientStore)
 	if err != nil {
 		err = fmt.Errorf(
-			"updateClient failed to load regInfo: %w",
+			"updateClient client %q failed to load regInfo: %w",
+			hostname,
 			err,
 		)
 		return
@@ -72,7 +75,7 @@ func updateClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	status, err := registration.Status(conn, hostname, sysInfo, extraData)
 	if err != nil {
 		err = fmt.Errorf(
-			"updateClient failed to update system status for %q: %w",
+			"updateClient client %q failed to update system status: %w",
 			hostname,
 			err,
 		)
@@ -86,7 +89,7 @@ func updateClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 
 		err = errors.New("failed to send keepalive heartbeat")
 		err = fmt.Errorf(
-			"updateClient failed to update system status for %q: %w",
+			"updateClient client %q failed to update system status: %w",
 			hostname,
 			err,
 		)
@@ -97,12 +100,13 @@ func updateClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	err = regInfo.Save(id, cliOpts.clientStore)
 	if err != nil {
 		err = fmt.Errorf(
-			"updatedClient failed to save updated registration info: %w",
+			"updatedClient client %q failed to save updated registration info: %w",
+			hostname,
 			err,
 		)
 	}
 
-	bold("Client %q keepalive heartbeat updated", hostname)
+	bold("Client %08d %q keepalive heartbeat updated", id, hostname)
 
 	return
 }
