@@ -97,7 +97,9 @@ generate-hwinfo: build
 	fi
 
 # testing actions
-.PHONY: client-deregister client-register client-update client-tester
+.PHONY: lifecycle client-deregister client-register client-update client-tester
+
+lifecycle: client-register client-update client-deregister
 
 client-register client-update client-deregister: env-exists generate-hwinfo docker-build
 	$(CNTR_MGR) run \
