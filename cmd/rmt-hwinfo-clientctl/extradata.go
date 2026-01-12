@@ -4,13 +4,13 @@ import (
 	"github.com/SUSE/connect-ng/pkg/registration"
 )
 
-func prepareExtraData(sysInfo SysInfo, cliOpts *CliOpts) registration.ExtraData {
+func prepareExtraData(sysInfo SysInfo, cliOpts *CliOpts) (registration.DataProfiles, registration.ExtraData) {
 	extraData := registration.ExtraData{
 		"instance_data": cliOpts.instData,
 	}
 
 	// add system profiles to extraData.dataProfiles, removing them from sysInfo
-	systemProfiles := map[string]any{}
+	systemProfiles := registration.DataProfiles{}
 	spNames := []string{
 		"pci_data",
 		"mod_list",
@@ -28,7 +28,10 @@ func prepareExtraData(sysInfo SysInfo, cliOpts *CliOpts) registration.ExtraData 
 	// don't include profiles if option was specified
 	if !cliOpts.NoDataProfiles {
 		extraData["system_profiles"] = systemProfiles
+	} else {
+		systemProfiles = registration.DataProfiles{}
 	}
+	systemProfiles = registration.DataProfiles{}
 
-	return extraData
+	return systemProfiles, extraData
 }

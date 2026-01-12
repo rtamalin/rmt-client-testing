@@ -53,7 +53,7 @@ func updateClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	sccCreds := regInfo.SccCreds
 
 	// generate the client's extraData
-	extraData := prepareExtraData(sysInfo, cliOpts)
+	extraData, systemProfiles := prepareExtraData(sysInfo, cliOpts)
 
 	if cliOpts.SccHost != "" {
 		connectOpts.URL = cliOpts.SccHost
@@ -72,7 +72,7 @@ func updateClient(id clientstore.FileId, cliOpts *CliOpts) (err error) {
 	conn := connection.New(connectOpts, &sccCreds)
 
 	trace("Sending keepalive heartbeat for client %q", hostname)
-	status, err := registration.Status(conn, hostname, sysInfo, extraData)
+	status, err := registration.Status(conn, hostname, sysInfo, systemProfiles, extraData)
 	if err != nil {
 		err = fmt.Errorf(
 			"updateClient client %q failed to update system status: %w",
