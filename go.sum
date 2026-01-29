@@ -1,11 +1,5 @@
-github.com/SUSE/connect-ng v1.15.1-0.20250918142025-bea640528db5 h1:ogFUL5yMLM37ZFmne0yBwsT5eK6w4hEpVPHDzB4N1f0=
-github.com/SUSE/connect-ng v1.15.1-0.20250918142025-bea640528db5/go.mod h1:iOl7a5Dn2kX9tJtDVzNblhtaS640WyhvgibCBk9Bt4s=
-github.com/SUSE/connect-ng v1.15.1-0.20251106211956-0125fd96aef6 h1:DzQTp7QvhdvcxAb9SpTV7eai9CQxZq14KMi7E39HLGk=
-github.com/SUSE/connect-ng v1.15.1-0.20251106211956-0125fd96aef6/go.mod h1:iOl7a5Dn2kX9tJtDVzNblhtaS640WyhvgibCBk9Bt4s=
-github.com/SUSE/connect-ng v1.15.1-0.20260107212227-fd386d6b0a61 h1:9kVTDWEf02Q1gYxhFxQMdYorbtUwTD6hwyz0t+pKfwI=
-github.com/SUSE/connect-ng v1.15.1-0.20260107212227-fd386d6b0a61/go.mod h1:iOl7a5Dn2kX9tJtDVzNblhtaS640WyhvgibCBk9Bt4s=
-github.com/SUSE/connect-ng v1.15.1-0.20260120130042-37248f287507 h1:qGNX/oJDfWlMPaPpEm7RbcDG5beuu4N+FGoKCGKOx/0=
-github.com/SUSE/connect-ng v1.15.1-0.20260120130042-37248f287507/go.mod h1:iOl7a5Dn2kX9tJtDVzNblhtaS640WyhvgibCBk9Bt4s=
+github.com/SUSE/connect-ng v1.20.1-0.20260122114316-f8d34b75afd2 h1:vV1yi54MrtucIE3nRcUiFki55YDvbq68Gg/KKHM9ijY=
+github.com/SUSE/connect-ng v1.20.1-0.20260122114316-f8d34b75afd2/go.mod h1:iOl7a5Dn2kX9tJtDVzNblhtaS640WyhvgibCBk9Bt4s=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
