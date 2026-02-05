@@ -49,7 +49,7 @@ TESTER_RUN_OPTIONS = \
 	-v $(CLIENT_DATA_STORE):/app/ClientDataStore
 
 # RMT setup actions
-.PHONY: rmt-setup
+.PHONY: rmt-setup rmt-mirror
 
 rmt-setup:
 	@if [ "$(RMT_ENV)" != "docker" ]; then \
@@ -58,6 +58,8 @@ rmt-setup:
 	fi
 	bin/rmt-cli sync
 	bin/rmt-cli product enable $(PRODUCT_SPEC)
+
+rmt-mirror: rmt-setup
 	bin/rmt-cli mirror all
 
 # testing environment check actions
